@@ -1,2 +1,2 @@
-# IECA-ReducedEnergyConsumption
-An implementation of the interaction-enhanced co-evolutionary algorithm for electric vehicle routing with low energy consumption.
+# Interaction-Enhanced Co-evolutionary algorithm for Reduced Energy Consumption in Electric Vehicle Routing
+An in-development C++ implementation of the interaction-enhanced co-evolutionary algorithm for electric vehicle routing, based on the work of [Shouliang Zhu and Chao Zang](https://www.sciencedirect.com/science/article/abs/pii/S1568494624008871), extended with a focus on reduced energy consumption.
