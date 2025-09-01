@@ -1,4 +1,4 @@
-#include <Vector>
+#include <vector>
 #include "vertex.hpp"
 #include "readInstance.hpp"
 #include <fstream>
