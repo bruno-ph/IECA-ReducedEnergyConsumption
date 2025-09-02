@@ -5,6 +5,7 @@
 #include <cfloat>
 #include "calculateDistances.hpp"
 #include "calcCost.hpp"
+#include "iostream"
 using namespace std;
 
 float NearestNCost(vector<vector<float>> &distances, int vertexCount){
@@ -13,11 +14,12 @@ float NearestNCost(vector<vector<float>> &distances, int vertexCount){
     iota(unvistedVertices.begin(),unvistedVertices.end(),0);
     random_device rd;
     mt19937 gen(rd());
-    uniform_int_distribution<> randRange(0, vertexCount+1);
+    uniform_int_distribution<> randRange(0, vertexCount-1);
 
     int initialValue = randRange(gen);
     auto iter = find(unvistedVertices.begin(),unvistedVertices.end(),initialValue);
-    unvistedVertices.erase(unvistedVertices.begin(),iter);
+    unvistedVertices.erase(iter);
+
     int utilizedCount = 1;
     visitedVertices.push_back(initialValue);
 
@@ -33,7 +35,7 @@ float NearestNCost(vector<vector<float>> &distances, int vertexCount){
         if (bestDist!=FLT_MAX){
             utilizedCount++;
             visitedVertices.push_back(*bestIter);
-            unvistedVertices.erase(unvistedVertices.begin(),bestIter);
+            unvistedVertices.erase(bestIter);
         }
     }
 

@@ -4,6 +4,7 @@
 #include "vertex.hpp"
 #include "readInstance.hpp"
 #include "calculateDistances.hpp"
+#include "nearestNeighbour.hpp"
 using namespace std;
 
 
@@ -27,6 +28,7 @@ int main(int argc, char *argv[])
     vector<vector<float>> distances;
     calculateDistances(allVertexes,distances);
 
+    float initialCost = NearestNCost(distances,vertexCount);
     // for (int i = 0; i < vertexCount ; i++){
     //     for (int j = 0 ; j < vertexCount; j++){
     //         cout << i << " "  << j << " " << distances[i][j] << endl;
