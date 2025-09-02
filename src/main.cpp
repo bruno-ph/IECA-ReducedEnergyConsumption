@@ -7,6 +7,9 @@
 #include "nearestNeighbour.hpp"
 using namespace std;
 
+const float rho = 0.98;
+const float alpha = 1;
+const float beta = 2;
 
 int main(int argc, char *argv[])
 {
@@ -44,7 +47,14 @@ int main(int argc, char *argv[])
     
     
     float pheromoneMatrix[vertexCount][vertexCount];
+    float initialMaxPhero = 1/((1-rho)*initialCost);
+    for (int i = 0; i < vertexCount; i++){
+        for (int j = 0; j < vertexCount; j++){
+            pheromoneMatrix[i][j]= ((i!=j) ? initialMaxPhero : 0);
+        }
+    }
 
+    vector<vector<int>> eliteSolutionSet;
     // cout << rechargers[0].x << endl;
     // cout << fuelCap << " " << loadCap << " " << consRate << " " << refuelRate << " " << vel;
 }
