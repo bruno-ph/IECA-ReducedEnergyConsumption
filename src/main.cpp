@@ -17,9 +17,15 @@ int main(int argc, char *argv[])
     readInstance(rechargers, depots, customers, fuelCap, loadCap, consRate, refuelRate, vel, instanceFile);
     int vertexCount = depots.size() + rechargers.size() + customers.size();
 
-    //Calculate all distances
+
+    vector<Vertex> allVertexes {};
+    allVertexes.insert(allVertexes.end(),depots.begin(),depots.end());
+    allVertexes.insert(allVertexes.end(),rechargers.begin(),rechargers.end());
+    allVertexes.insert(allVertexes.end(),customers.begin(),customers.end());
+
+    //Pre-Calculate all distances
     vector<vector<float>> distances;
-    calculateDistances(depots,rechargers,customers,distances);
+    calculateDistances(allVertexes,distances);
 
     // for (int i = 0; i < vertexCount ; i++){
     //     for (int j = 0 ; j < vertexCount; j++){
