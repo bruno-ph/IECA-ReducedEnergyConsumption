@@ -27,7 +27,7 @@ void readInstance(vector<Vertex> &rechargers, vector<Vertex> &depots, vector<Ver
     getline(file, line);
     getline(file, line);
     string idStr, typeStr, xStr, yStr, demandStr, readyStr, dueStr, serviceStr;
-
+    int counter = 0;
     while (!line.empty())
     {
         stringstream ss(line);
@@ -40,7 +40,8 @@ void readInstance(vector<Vertex> &rechargers, vector<Vertex> &depots, vector<Ver
         ss >> readyStr;
         ss >> dueStr;
         ss >> serviceStr;
-        Vertex v = {stof(xStr), stof(yStr), stof(demandStr), stof(readyStr), stof(dueStr), stof(serviceStr), idStr, typeStr};
+        Vertex v = {stof(xStr), stof(yStr), stof(demandStr), stof(readyStr), stof(dueStr), stof(serviceStr), counter, idStr, typeStr};
+        counter++;
         if (typeStr == "f")
         {
             rechargers.push_back(v);
@@ -53,6 +54,7 @@ void readInstance(vector<Vertex> &rechargers, vector<Vertex> &depots, vector<Ver
         {
             customers.push_back(v);
         }
+        cout << counter << ": " << v.number << endl;
         getline(file, line);
     }
     getline(file, line);

@@ -9,6 +9,7 @@ struct Vertex
     float readyTime;
     float dueTime;
     float serviceTimes;
+    int number;
     std::string id;
     std::string type;
 };
