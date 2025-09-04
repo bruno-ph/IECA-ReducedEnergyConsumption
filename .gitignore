@@ -42,3 +42,5 @@
 
 .vscode
 iecaRun
+.venv
+__pycache__
