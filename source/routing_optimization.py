@@ -1,6 +1,7 @@
 import numpy as np
 from random import randint, uniform
 from math import pow
+from two_opt_search import TwoOptSearch
 def RouletteWheelSelection(nodes,origin, distances, alpha, beta, pheromone_matrix):
     f = lambda x: max((min(pow(pheromone_matrix[origin][x], alpha) / max(pow(distances[origin][x], beta),1e-8),1e15)),1e-8)
     chances = list(map(f,nodes))
@@ -46,6 +47,7 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit):
         i = p[j]
         for k in range (i+1,j+1):
             trip.append(original_route[k])
+        trip = TwoOptSearch(trip)
         trips.append(trip)
         j=i
     #print ("Trips:" ,trips)
@@ -77,7 +79,6 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_cou
         
         #print ("Route = ",route)
         split_route= Split(route,all_coors,distances,load_cap,1e15)
-        final_route = TwoOptSearch()
         routes.append(route)
         #print(routes)
 
