@@ -36,7 +36,7 @@ def main():
     elite_solution_set=[]
 
     for i in range(NUMBER_ITERATIONS):
-        RoutingOptimization(vertex_count, len(depots),len(customers),len(rechargers), pheromone_matrix, population_size, ALPHA, BETA, distances)
+        RoutingOptimization(vertex_count, len(depots),len(customers),len(rechargers), pheromone_matrix, population_size, ALPHA, BETA, distances, all_coor,load_cap)
 
 
 
