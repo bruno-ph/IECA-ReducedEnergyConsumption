@@ -2,6 +2,7 @@ import numpy as np
 from random import randint, uniform
 from math import pow
 from two_opt_search import TwoOptSearch
+from eval import EvalElecMulti
 def RouletteWheelSelection(nodes,origin, distances, alpha, beta, pheromone_matrix):
     f = lambda x: max((min(pow(pheromone_matrix[origin][x], alpha) / max(pow(distances[origin][x], beta),1e-8),1e15)),1e-8)
     chances = list(map(f,nodes))
@@ -55,8 +56,9 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit):
 
     
 
-def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_count, pheromone_matrix, population_size, alpha, beta, distances, all_coors, load_cap):
-    routes = []
+def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_count, pheromone_matrix, population_size, alpha, beta, distances, all_coors, load_cap, speed):
+    best_ant_route = []
+    best_ant_quality= 1e-15
     for k in range(population_size):
         remaining_uses= np.ones(vertex_count)
         remaining_uses[depots_count:recharges_count] = 2  * customers_count
@@ -79,7 +81,12 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_cou
         
         #print ("Route = ",route)
         split_route= Split(route,all_coors,distances,load_cap,1e15)
-        routes.append(route)
+        split_route_quality = EvalElecMulti(split_route,distances, speed, load_cap, all_coors)
+        if (split_route_quality>best_ant_quality):
+            best_ant_quality = split_route_quality
+            best_ant_route = split_route
+    #get best ant charging scheme
+    return (best_ant_route,best_ant_quality,best_ant_charging_scheme)
         #print(routes)
 
 
