@@ -3,6 +3,21 @@ from random import randint, uniform
 from math import pow
 from two_opt_search import TwoOptSearch
 from eval import EvalElecMulti
+
+def GetAntChargingScheme(best_ant_route,customers_count,depots_count,recharges_count):
+    charge_mask = np.zeros(customers_count)
+    min_customer = depots_count+recharges_count
+    for route in best_ant_route:
+        last_customer = -1
+        for coordinate in route:
+            if (coordinate>min_customer):
+                last_customer=coordinate
+            elif (coordinate>depots_count and last_customer!=-1):
+                charge_mask[last_customer-min_customer]=1
+    return charge_mask
+
+
+
 def RouletteWheelSelection(nodes,origin, distances, alpha, beta, pheromone_matrix):
     f = lambda x: max((min(pow(pheromone_matrix[origin][x], alpha) / max(pow(distances[origin][x], beta),1e-8),1e15)),1e-8)
     chances = list(map(f,nodes))
@@ -86,6 +101,7 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_cou
             best_ant_quality = split_route_quality
             best_ant_route = split_route
     #get best ant charging scheme
+    best_ant_charging_scheme  = GetAntChargingScheme(best_ant_route,customers_count,depots_count,recharges_count)
     return (best_ant_route,best_ant_quality,best_ant_charging_scheme)
         #print(routes)
 
