@@ -9,6 +9,7 @@ import vertex
 from calc_distances import CalcDistances
 from nearest_neighbour import NearestNeighbourCost
 from routing_optimization import RoutingOptimization
+from initialize_population import InitializeChargingPopulation
 
 def main():
     instanceFile = (sys.argv[1])
@@ -26,8 +27,7 @@ def main():
     print(initial_cost)
 
     population_size = len(customers)
-    charging_population = np.zeros((population_size,population_size))
-    #Properly initialize charging population later
+    charging_population = InitializeChargingPopulation(population_size, distances, len(depots), len(rechargers), len(customers))
 
     initial_max_pheromone = 1 / ((1 - RHO) * initial_cost)
     pheromone_matrix = np.full((vertex_count,vertex_count),initial_max_pheromone)
