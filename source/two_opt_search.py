@@ -1,4 +1,4 @@
-from eval import EvalElec
+from eval import EvalElecSingle
 
 import numpy as np
 def TwoOptSwap(route,v1,v2):
@@ -7,8 +7,8 @@ def TwoOptSwap(route,v1,v2):
     new_route = np.concatenate(new_route,route[v2:])
     return new_route
 
-def TwoOptSearch(route):
-    best_cost = EvalElec(route)
+def TwoOptSearch(route,distances,speed, load_cap, all_coors):
+    best_cost = EvalElecSingle(route,distances,speed, load_cap, all_coors)
     n=len(route)
     should_continue = False
     while (should_continue):
@@ -16,7 +16,7 @@ def TwoOptSearch(route):
         for i in range (0,n):
             for j in range(1,n):
                 new_route=TwoOptSwap(route,i,j)
-                new_cost=EvalElec(new_route)
+                new_cost=EvalElecSingle(new_route)
                 if (new_cost < best_cost + 0.000001): #potentially add check for time windows
                     best_cost=new_cost
                     route=new_route

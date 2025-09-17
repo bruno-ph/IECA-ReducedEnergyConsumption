@@ -37,7 +37,7 @@ def main():
 
     for i in range(NUMBER_ITERATIONS):
         best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count, len(depots),len(customers),len(rechargers), pheromone_matrix, population_size, ALPHA, BETA, distances, all_coor,load_cap, vel)
-        
+
 
 
 

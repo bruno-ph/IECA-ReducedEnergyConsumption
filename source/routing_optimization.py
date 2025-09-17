@@ -33,7 +33,7 @@ def RouletteWheelSelection(nodes,origin, distances, alpha, beta, pheromone_matri
         curr_sum+=chance
     raise Exception
 
-def Split(original_route,vertices,distances,cargo_size,cost_limit):
+def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, all_coors):
     n = len(original_route)
     p = np.full(n,original_route[0]) #Predecessor Node
     #print("P is",p)
@@ -63,9 +63,10 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit):
         i = p[j]
         for k in range (i+1,j+1):
             trip.append(original_route[k])
-        trip = TwoOptSearch(trip)
+        trip = TwoOptSearch(trip,distances,speed, cargo_size, all_coors )
         trips.append(trip)
         j=i
+    return trips
     #print ("Trips:" ,trips)
     
 
@@ -73,7 +74,7 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit):
 
 def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_count, pheromone_matrix, population_size, alpha, beta, distances, all_coors, load_cap, speed):
     best_ant_route = []
-    best_ant_quality= 1e-15
+    best_ant_cost= 1e15
     for k in range(population_size):
         remaining_uses= np.ones(vertex_count)
         remaining_uses[depots_count:recharges_count] = 2  * customers_count
@@ -95,14 +96,14 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_cou
             route.insert(0,0)
         
         #print ("Route = ",route)
-        split_route= Split(route,all_coors,distances,load_cap,1e15)
-        split_route_quality = EvalElecMulti(split_route,distances, speed, load_cap, all_coors)
-        if (split_route_quality>best_ant_quality):
-            best_ant_quality = split_route_quality
+        split_route= Split(route,all_coors,distances,load_cap,1e15, speed, all_coors)
+        split_route_cost = EvalElecMulti(split_route,distances, speed, load_cap, all_coors)
+        if (split_route_cost<best_ant_cost):
+            best_ant_cost = split_route_cost
             best_ant_route = split_route
     #get best ant charging scheme
     best_ant_charging_scheme  = GetAntChargingScheme(best_ant_route,customers_count,depots_count,recharges_count)
-    return (best_ant_route,best_ant_quality,best_ant_charging_scheme)
+    return (best_ant_route,best_ant_cost,best_ant_charging_scheme)
         #print(routes)
 
 
