@@ -52,7 +52,7 @@ def main():
         charging_population_ratings = np.zeros(len(combined_charging_population))
         for im,member in enumerate(combined_charging_population):
             charging_population_ratings[im] = EvalElecMulti(GenerateRoute(best_routing_ant,member,len(depots),len(rechargers)),distances,vel,load_cap,all_coor,load_unit_cost)
-
+        
         #EnhancedInteraction(selected_charging_population, selected_population_rankings, elite_solution_set, best_routing_ant )
 
 
