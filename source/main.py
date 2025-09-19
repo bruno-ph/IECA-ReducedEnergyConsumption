@@ -52,8 +52,19 @@ def main():
         charging_population_ratings = np.zeros(len(combined_charging_population))
         for im,member in enumerate(combined_charging_population):
             charging_population_ratings[im] = EvalElecMulti(GenerateRoute(best_routing_ant,member,len(depots),len(rechargers)),distances,vel,load_cap,all_coor,load_unit_cost)
-        
-        #EnhancedInteraction(selected_charging_population, selected_population_rankings, elite_solution_set, best_routing_ant )
+        best_charging_schemes_indexes = np.argsort(charging_population_ratings)[:population_size]
+        best_charging_scheme= combined_charging_population[best_charging_schemes_indexes[0]]
+        charging_population = combined_charging_population[best_charging_schemes_indexes]
+        new_solution = GenerateRoute(best_routing_ant, best_charging_scheme, len(depots), len(rechargers))
+        if (len(elite_solution_set)<population_size and IsViable(new_solution)):
+            elite_solution_set.append(new_solution)
+        else:
+            #rank the elite solutions and replace the worst one
+
+        #if there exists an electricity-feasible solution s′ that is better than s then  7 s ← s′;  
+        # 8 Update pheromone matrix φ by s; 
+        # 9 Update pheromone matrix φ using Qbest;
+
 
 
 
