@@ -10,9 +10,9 @@ def GetAntChargingScheme(best_ant_route,customers_count,depots_count,recharges_c
     for route in best_ant_route:
         last_customer = -1
         for coordinate in route:
-            if (coordinate>min_customer):
+            if (coordinate>=min_customer):
                 last_customer=coordinate
-            elif (coordinate>depots_count and last_customer!=-1):
+            elif (coordinate>=depots_count and last_customer!=-1):
                 charge_mask[last_customer-min_customer]=1
     return charge_mask
 

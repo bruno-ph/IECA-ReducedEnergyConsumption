@@ -1,20 +1,21 @@
-air_density = 1.2041
+air_density = 1.2041 #kg/m³
 roll_resist = 0.01
 drag_resist = 0.48
-gravity = 9.81
-vehicle_surf_area = 11.112
+gravity = 9.81 #m/s²
+vehicle_surf_area = 11.112 #m²
 transmission_effic = 0.89
+#speed m/s, a is m/s², h is kW (second by second)
 
 def EvalElecSingle(vehicle_route,distances, speed, initial_load_mass, all_coors):
-    #speed is m/s, mass is kg, h in watt per km, distance in km (probably)
+    #speed is m/s, mass is kg, h in joule per second, distance is m
     cost=0.0
     load_mass = initial_load_mass
     for i in range(0,len(vehicle_route)-2):
         dist =distances[vehicle_route[i]][vehicle_route[i+1]]
         alpha = (0.5 * roll_resist * air_density * vehicle_surf_area * pow(speed,3)) /(1000*transmission_effic)
         beta = (gravity*drag_resist*speed)/(1000*transmission_effic)
-        h = alpha+beta*load_mass #watt per km
-        cost += h*dist
+        h = alpha+beta*load_mass #watt or joule per second
+        cost += h*(dist/speed) #total joules
         load_mass = max(load_mass - all_coors[vehicle_route[i+1]].demand,0)
     return cost
 

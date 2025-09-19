@@ -10,6 +10,7 @@ from calc_distances import CalcDistances
 from nearest_neighbour import NearestNeighbourCost
 from routing_optimization import RoutingOptimization
 from initialize_population import InitializeChargingPopulation
+from charging_optimization import ChargingOptimization
 
 def main():
     instanceFile = (sys.argv[1])
@@ -37,7 +38,7 @@ def main():
 
     for i in range(NUMBER_ITERATIONS):
         best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count, len(depots),len(customers),len(rechargers), pheromone_matrix, population_size, ALPHA, BETA, distances, all_coor,load_cap, vel)
-
+        offspring_population = ChargingOptimization(charging_population,routing_ant_charging_scheme)
 
 
 
