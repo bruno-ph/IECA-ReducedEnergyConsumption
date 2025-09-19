@@ -7,8 +7,8 @@ def TwoOptSwap(route,v1,v2):
     new_route = np.concatenate(new_route,route[v2:])
     return new_route
 
-def TwoOptSearch(route,distances,speed, load_cap, all_coors):
-    best_cost = EvalElecSingle(route,distances,speed, load_cap, all_coors)
+def TwoOptSearch(route,distances,speed, load_cap, all_coors,load_unit_cost):
+    best_cost = EvalElecSingle(route,distances,speed, load_cap, all_coors,load_unit_cost)
     n=len(route)
     should_continue = False
     while (should_continue):

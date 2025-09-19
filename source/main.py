@@ -2,6 +2,8 @@ RHO = 0.98
 ALPHA = 1
 BETA = 2
 NUMBER_ITERATIONS = 5000
+REAL_MAX_PAYLOAD_WEIGHT = 3650
+REAL_VEHICLE_WEIGHT = 6350
 import sys
 import numpy as np
 import read_instance as read_instance
@@ -22,6 +24,8 @@ def main():
     customers=[]
 
     rechargers, depots, customers,fuel_cap, load_cap, cons_rate, refuel_rate, vel = read_instance.ReadInstance(instanceFile)
+    real_to_virtual_cargo_ratio = REAL_MAX_PAYLOAD_WEIGHT/load_cap
+    load_unit_cost = real_to_virtual_cargo_ratio/REAL_VEHICLE_WEIGHT
     all_coor= depots+rechargers+customers
     vertex_count = len(all_coor)
     distances=CalcDistances(all_coor)
@@ -39,7 +43,7 @@ def main():
     elite_solution_set=[]
 
     for iteration in range(NUMBER_ITERATIONS):
-        best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count, len(depots),len(customers),len(rechargers), pheromone_matrix, population_size, ALPHA, BETA, distances, all_coor,load_cap, vel)
+        best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count, len(depots),len(customers),len(rechargers), pheromone_matrix, population_size, ALPHA, BETA, distances, all_coor,load_cap, vel,load_unit_cost)
         offspring_population = ChargingOptimization(charging_population,routing_ant_charging_scheme)
 
         #combine and rate charging and offspring population
@@ -47,7 +51,7 @@ def main():
         combined_charging_population = np.concatenate((charging_population,offspring_population))
         charging_population_ratings = np.zeros(len(combined_charging_population))
         for im,member in enumerate(combined_charging_population):
-            charging_population_ratings[im] = EvalElecMulti(GenerateRoute(best_routing_ant,member,len(depots),len(rechargers)),distances,vel,load_cap,all_coor)
+            charging_population_ratings[im] = EvalElecMulti(GenerateRoute(best_routing_ant,member,len(depots),len(rechargers)),distances,vel,load_cap,all_coor,load_unit_cost)
 
         #EnhancedInteraction(selected_charging_population, selected_population_rankings, elite_solution_set, best_routing_ant )
 
