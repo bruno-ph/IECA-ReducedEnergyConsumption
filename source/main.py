@@ -11,6 +11,8 @@ from nearest_neighbour import NearestNeighbourCost
 from routing_optimization import RoutingOptimization
 from initialize_population import InitializeChargingPopulation
 from charging_optimization import ChargingOptimization
+from generate_route import GenerateRoute
+from eval import EvalElecMulti
 
 def main():
     instanceFile = (sys.argv[1])
@@ -36,9 +38,18 @@ def main():
 
     elite_solution_set=[]
 
-    for i in range(NUMBER_ITERATIONS):
+    for iteration in range(NUMBER_ITERATIONS):
         best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count, len(depots),len(customers),len(rechargers), pheromone_matrix, population_size, ALPHA, BETA, distances, all_coor,load_cap, vel)
         offspring_population = ChargingOptimization(charging_population,routing_ant_charging_scheme)
+
+        #combine and rate charging and offspring population
+        charging_population = charging_population.astype(bool)
+        combined_charging_population = np.concatenate((charging_population,offspring_population))
+        charging_population_ratings = np.zeros(len(combined_charging_population))
+        for im,member in enumerate(combined_charging_population):
+            charging_population_ratings[im] = EvalElecMulti(GenerateRoute(best_routing_ant,member,len(depots),len(rechargers)),distances,vel,load_cap,all_coor)
+
+        #EnhancedInteraction(selected_charging_population, selected_population_rankings, elite_solution_set, best_routing_ant )
 
 
 
