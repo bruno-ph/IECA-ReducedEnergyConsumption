@@ -33,7 +33,7 @@ def RouletteWheelSelection(nodes,origin, distances, alpha, beta, pheromone_matri
         curr_sum+=chance
     raise Exception
 
-def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, all_coors, load_unit_cost):
+def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, all_coors, load_unit_cost,cons_rate):
     n = len(original_route)
     p = np.full(n,original_route[0]) #Predecessor Node
     #print("P is",p)
@@ -63,7 +63,7 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, all_co
         i = p[j]
         for k in range (i+1,j+1):
             trip.append(original_route[k])
-        trip = TwoOptSearch(trip,distances,speed, cargo_size, all_coors, load_unit_cost )
+        trip = TwoOptSearch(trip,distances,speed, cargo_size, all_coors, load_unit_cost,cons_rate )
         trips.append(trip)
         j=i
     return trips
@@ -72,7 +72,7 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, all_co
 
     
 
-def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_count, pheromone_matrix, population_size, alpha, beta, distances, all_coors, load_cap, speed,load_unit_cost):
+def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_count, pheromone_matrix, population_size, alpha, beta, distances, all_coors, load_cap, speed,load_unit_cost,cons_rate):
     best_ant_route = []
     best_ant_cost= 1e15
     for k in range(population_size):
@@ -96,8 +96,8 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_cou
             route.insert(0,0)
         
         #print ("Route = ",route)
-        split_route= Split(route,all_coors,distances,load_cap,1e15, speed, all_coors, load_unit_cost)
-        split_route_cost = EvalElecMulti(split_route,distances, speed, load_cap, all_coors,load_unit_cost)
+        split_route= Split(route,all_coors,distances,load_cap,1e15, speed, all_coors, load_unit_cost,cons_rate)
+        split_route_cost = EvalElecMulti(split_route,distances, speed, load_cap, all_coors,load_unit_cost, cons_rate)
         if (split_route_cost<best_ant_cost):
             best_ant_cost = split_route_cost
             best_ant_route = split_route
