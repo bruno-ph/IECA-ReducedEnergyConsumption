@@ -16,7 +16,7 @@ from charging_optimization import ChargingOptimization
 from generate_route import GenerateRoute
 from eval import EvalElecMulti, IsViable
 from update_pheromones import UpdatePheromones
-
+from local_search import LocalSearch
 def main():
     instanceFile = (sys.argv[1])
     print (instanceFile)
@@ -77,6 +77,11 @@ def main():
         max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
         min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
         pheromone_matrix = UpdatePheromones(RHO, pheromone_matrix, elite_solution_set, elite_population_costs, new_solution, new_solution_cost, max_pheromone, min_pheromone)
+    best_solution= elite_solution_set[-1]
+    tentative_improved_solution, improved_solution_cost = LocalSearch(best_solution)
+    if (improved_solution_cost<tentative_improved_solution):
+        best_solution=tentative_improved_solution
+        best_solution_cost=improved_solution_cost
 
 
 
