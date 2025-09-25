@@ -82,8 +82,11 @@ def main():
     if (improved_solution_cost<tentative_improved_solution): #and it is valid!
         best_solution=tentative_improved_solution
         best_solution_cost=improved_solution_cost
-
-
+    for route in best_solution:
+        for node in route:
+            print(all_coor[node].id+"->",end="")
+    print("Electric Unit Cost:"+best_solution_cost)
+    
 
 
 
