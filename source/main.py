@@ -79,7 +79,7 @@ def main():
         pheromone_matrix = UpdatePheromones(RHO, pheromone_matrix, elite_solution_set, elite_population_costs, new_solution, new_solution_cost, max_pheromone, min_pheromone)
     best_solution= elite_solution_set[-1]
     tentative_improved_solution, improved_solution_cost = LocalSearch(best_solution)
-    if (improved_solution_cost<tentative_improved_solution):
+    if (improved_solution_cost<tentative_improved_solution): #and it is valid!
         best_solution=tentative_improved_solution
         best_solution_cost=improved_solution_cost
 

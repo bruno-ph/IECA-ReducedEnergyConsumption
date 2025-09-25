@@ -1,6 +1,6 @@
 import numpy as np
 from eval import FirstBreakingPoint
-
+from random import uniform
 def FindSearchZone(vehicle_route,original_vehicle_route, breaking_point, depots_count,rechargers_count):
     breaking_point_index = np.where(original_vehicle_route == breaking_point)[0]
     last_station_before_bp_index = np.where(original_vehicle_route[:breaking_point_index] < depots_count+rechargers_count)[-1]
@@ -10,7 +10,7 @@ def FindSearchZone(vehicle_route,original_vehicle_route, breaking_point, depots_
     search_zone = vehicle_route[search_zone_start_index:search_zone_end_index]
     return search_zone
 
-def FirstBreakingPoint(vehicle_route, distances, all_coors, initial_load_amm, unit_weight, fuel_cap, cons_rate,depots_count,rechargers_count):
+def FirstBreakingPoint(vehicle_route, distances, all_coors, initial_load_amm, unit_weight, fuel_cap, cons_rate,depots_count,rechargers_count, vehicle_weight):
 
     vehicle_battery = fuel_cap
     vehicle_load = initial_load_amm
@@ -31,13 +31,34 @@ def FirstBreakingPoint(vehicle_route, distances, all_coors, initial_load_amm, un
     return -1
 
 
-def FindReachableStations():
-    pass
+def FindReachableStations(current_node, next_node ,depots_count,rechargers_count, distances, vehicle_weight, vehicle_load,unit_weight, cons_rate, vehicle_battery):
+    rs = []
+    for station in range(depots_count,depots_count+rechargers_count):
+        dist1 = distances[current_node][station]
+        
+        station_cost = (((vehicle_weight + vehicle_load * unit_weight)*dist1) * cons_rate)
+        if (vehicle_battery-station_cost>0):
+            dist2= distances[station][next_node]
+            station_return_cost = (((vehicle_weight + vehicle_load * unit_weight)*dist2) * cons_rate)
+            rs.append(station, station_cost + station_return_cost)
+    return rs
 
-def PickRandomNodeAndStation():
-    pass
+def PickRandomNodeAndStation(search_zone,rs):
+    chances =[]
+    chances_sum = 0.0
+    for i, node_reachable_stations in enumerate(rs):
+        for station in node_reachable_stations:
+            cost_inverted = 1/station[1]
+            chances_sum+= cost_inverted
+            chances.append((station[0],search_zone[i],chances_sum)) #station, origin, station_cost
+            
+    random_value = uniform(0.0, chances_sum)
+    for chance in chances:
+        if (random_value<=chance[2]):
+            return [chance[1],chances[0]]
+    raise Exception
 
-def LocalSearch(original_solution,depots_count,rechargers_count, load_cap):
+def LocalSearch(original_solution,depots_count,rechargers_count, all_coors, load_cap, distances, vehicle_weight, vehicle_load, unit_weight, cons_rate, fuel_cap):
     mask = (original_solution>=depots_count and original_solution<depots_count+rechargers_count)
     custom_solution=[route[mask[i]] for i,route in enumerate(original_solution)]
     for i in range (len(custom_solution)):
@@ -52,15 +73,15 @@ def LocalSearch(original_solution,depots_count,rechargers_count, load_cap):
             search_zone = custom_route[search_zone_start,breaking_point_index]
             reachable_stations=[] #matrix of reachable stations for each node in search zone
             for ni,node in enumerate(search_zone):
-                rs = FindReachableStations(node) #should return an array of tuples {station number, cost to station} for that node
+                rs = FindReachableStations(node,search_zone[ni+1],depots_count,rechargers_count,distances, vehicle_weight, vehicle_load, unit_weight, cons_rate, fuel_cap) #should return an array of tuples {station number, cost to station} for that node
                 if rs:
                     reachable_stations.append(rs)
                 else:
                     search_zone.pop(ni) #delete from search zone if can't reach a station
-            node_to_receive_station, station_to_be_added = PickRandomNodeAndStation()
+            node_to_receive_station, station_to_be_added = PickRandomNodeAndStation(search_zone,rs)
             node_to_receive_station_index = np.where(custom_route == node_to_receive_station)[-1]
             custom_route.insert(station_to_be_added,node_to_receive_station_index) #watch out for off by one error
-            breaking_point_index= FirstBreakingPoint(custom_route) #reset and iterate
+            breaking_point_index= FirstBreakingPoint(custom_route, distances, all_coors, load_cap, unit_weight, fuel_cap, cons_rate, depots_count, rechargers_count, vehicle_weight) #reset and iterate
             iterations+=1
         custom_solution[i]=custom_route
     #do local search
