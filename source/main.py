@@ -85,6 +85,7 @@ def main():
     for route in best_solution:
         for node in route:
             print(all_coor[node].id+"->",end="")
+        print("END")
     print("Electric Unit Cost:"+best_solution_cost)
     
 
