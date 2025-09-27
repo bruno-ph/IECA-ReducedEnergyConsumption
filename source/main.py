@@ -1,7 +1,7 @@
 RHO = 0.98
 ALPHA = 1
 BETA = 2
-NUMBER_ITERATIONS = 5000
+NUMBER_ITERATIONS = 100 #5000
 REAL_MAX_PAYLOAD_WEIGHT = 3650
 REAL_VEHICLE_WEIGHT = 6350
 import sys
@@ -42,6 +42,7 @@ def main():
     np.fill_diagonal(pheromone_matrix,0)
 
     elite_solution_set=[]
+    elite_population_costs=[]
     max_pheromone = 1
     min_pheromone = 1
     for iteration in range(NUMBER_ITERATIONS):
@@ -58,24 +59,25 @@ def main():
         best_charging_scheme= combined_charging_population[best_charging_schemes_indexes[0]]
         charging_population = combined_charging_population[best_charging_schemes_indexes]
         new_solution = GenerateRoute(best_routing_ant, best_charging_scheme, len(depots), len(rechargers))
-        new_solution_cost = EvalElecMulti(new_solution,distances,vel,load_cap,all_coor,load_unit_cost)
+        new_solution_cost = EvalElecMulti(new_solution,distances,vel,load_cap,all_coor,load_unit_cost,cons_rate)
+        
         if (IsViable(new_solution,distances, vel, all_coor, load_cap, load_unit_cost, fuel_cap, cons_rate,refuel_rate,len(depots),len(rechargers))):
             if (len(elite_solution_set)<population_size):
                 elite_solution_set.append(new_solution)
+                elite_population_costs = [EvalElecMulti(elite_solution,distances,vel,load_cap,all_coor,load_unit_cost,cons_rate) for elite_solution in elite_solution_set]
             else:
-                elite_population_costs = [EvalElecMulti(elite_solution,distances,vel,load_cap,all_coor,load_unit_cost) for elite_solution in elite_solution_set]
-                elite_population_ranking = np.argsort(elite_population_costs)
-                elite_solution_set = elite_solution_set[elite_population_ranking]
-                if (new_solution_cost<min(elite_population_costs)):
-                    elite_solution_set[0]= new_solution
+                elite_population_costs = [EvalElecMulti(elite_solution,distances,vel,load_cap,all_coor,load_unit_cost,cons_rate) for elite_solution in elite_solution_set]
+                elite_solution_set = [es for _,es in sorted(zip(elite_population_costs,elite_solution_set))]
+                if (new_solution_cost<max(elite_population_costs)):
+                    elite_solution_set[-1]= new_solution
                     elite_population_costs = [EvalElecMulti(elite_solution,distances,vel,load_cap,all_coor,load_unit_cost) for elite_solution in elite_solution_set]
                     
         else:
             new_solution = []
-
-        best_solution_cost = EvalElecMulti(elite_solution_set[-1],distances,vel,load_cap,all_coor,load_unit_cost)
-        max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
-        min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
+        if (elite_solution_set):
+            best_solution_cost = EvalElecMulti(elite_solution_set[-1],distances,vel,load_cap,all_coor,load_unit_cost,cons_rate)
+            max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
+            min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
         pheromone_matrix = UpdatePheromones(RHO, pheromone_matrix, elite_solution_set, elite_population_costs, new_solution, new_solution_cost, max_pheromone, min_pheromone)
     best_solution= elite_solution_set[-1]
     tentative_improved_solution, improved_solution_cost = LocalSearch(best_solution)
