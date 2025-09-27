@@ -47,7 +47,7 @@ def main():
     min_pheromone = 1
     for iteration in range(NUMBER_ITERATIONS):
         print(iteration)
-        best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count, len(depots),len(customers),len(rechargers), pheromone_matrix, population_size, ALPHA, BETA, distances, all_coor,load_cap, vel,load_unit_cost,cons_rate)
+        best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count, len(depots),len(customers),len(rechargers), pheromone_matrix, population_size, ALPHA, BETA, distances, all_coor,load_cap, vel,load_unit_cost,cons_rate,fuel_cap,refuel_rate)
         offspring_population = ChargingOptimization(charging_population,routing_ant_charging_scheme)
 
         #combine and rate charging and offspring population
@@ -72,13 +72,15 @@ def main():
                 if (new_solution_cost<max(elite_population_costs)):
                     elite_solution_set[-1]= new_solution
                     elite_population_costs = [EvalElecMulti(elite_solution,distances,vel,load_cap,all_coor,load_unit_cost,cons_rate) for elite_solution in elite_solution_set]
-                    
-        else:
-            new_solution = []
+
         if (elite_solution_set):
             best_solution_cost = EvalElecMulti(elite_solution_set[-1],distances,vel,load_cap,all_coor,load_unit_cost,cons_rate)
             max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
             min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
+        # else:
+        #     best_solution_cost = EvalElecMulti(new_solution,distances,vel,load_cap,all_coor,load_unit_cost,cons_rate)
+        #     max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
+        #     min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
         pheromone_matrix = UpdatePheromones(RHO, pheromone_matrix, elite_solution_set, elite_population_costs, new_solution, new_solution_cost, max_pheromone, min_pheromone)
     if (not elite_solution_set):
         raise Exception

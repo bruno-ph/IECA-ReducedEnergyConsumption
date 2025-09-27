@@ -2,7 +2,7 @@ import numpy as np
 from random import randint, uniform
 from math import pow
 from two_opt_search import TwoOptSearch
-from eval import EvalElecMulti
+from eval import EvalElecMulti, IsViable
 
 def GetAntChargingScheme(best_ant_route,customers_count,depots_count,recharges_count):
     charge_mask = np.zeros(customers_count)
@@ -72,12 +72,13 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, all_co
 
     
 
-def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_count, pheromone_matrix, population_size, alpha, beta, distances, all_coors, load_cap, speed,load_unit_cost,cons_rate):
+def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_count, pheromone_matrix, population_size, alpha, beta, distances, all_coors, load_cap, speed,load_unit_cost,cons_rate,fuel_cap,refuel_rate):
     best_ant_route = []
     best_ant_cost= 1e15
+    best_ant_viable = False
     for k in range(population_size):
         remaining_uses= np.ones(vertex_count)
-        remaining_uses[depots_count:recharges_count] = 2  * customers_count
+        remaining_uses[depots_count:rechargers_count] = 2  * customers_count
         route = []
         possible_next=np.where(remaining_uses>0)[0]
         current = possible_next[randint(0, len(possible_next)-1)]
@@ -89,7 +90,7 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_cou
             current= RouletteWheelSelection(np.delete(remaining_positions,np.argwhere(remaining_positions==current)),current, distances, alpha, beta, pheromone_matrix)
             route.append(current)
             remaining_uses[current]-=1
-            if len(remaining_positions<=depots_count+recharges_count) and max(remaining_positions)<=(depots_count+recharges_count):
+            if len(remaining_positions<=depots_count+rechargers_count) and max(remaining_positions)<(depots_count+rechargers_count):
                 break
             remaining_positions =np.where(remaining_uses>0)[0]
         if (route[0]>=depots_count):
@@ -98,11 +99,16 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,recharges_cou
         #print ("Route = ",route)
         split_route= Split(route,all_coors,distances,load_cap,1e15, speed, all_coors, load_unit_cost,cons_rate)
         split_route_cost = EvalElecMulti(split_route,distances, speed, load_cap, all_coors,load_unit_cost, cons_rate)
-        if (split_route_cost<best_ant_cost):
-            best_ant_cost = split_route_cost
-            best_ant_route = split_route
+        if (best_ant_viable):
+            if (split_route_cost<best_ant_cost and IsViable(split_route,distances,speed,all_coors,load_cap,load_unit_cost,fuel_cap,cons_rate,refuel_rate,depots_count,rechargers_count)):
+                best_ant_cost = split_route_cost
+                best_ant_route = split_route
+        else:
+            if (split_route_cost<best_ant_cost):
+                best_ant_cost = split_route_cost
+                best_ant_route = split_route
     #get best ant charging scheme
-    best_ant_charging_scheme  = GetAntChargingScheme(best_ant_route,customers_count,depots_count,recharges_count)
+    best_ant_charging_scheme  = GetAntChargingScheme(best_ant_route,customers_count,depots_count,rechargers_count)
     return (best_ant_route,best_ant_cost,best_ant_charging_scheme)
         #print(routes)
 
