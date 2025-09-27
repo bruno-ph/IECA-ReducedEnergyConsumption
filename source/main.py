@@ -1,7 +1,7 @@
 RHO = 0.98
 ALPHA = 1
 BETA = 2
-NUMBER_ITERATIONS = 100
+NUMBER_ITERATIONS = 5000
 REAL_MAX_PAYLOAD_WEIGHT = 3650
 REAL_VEHICLE_WEIGHT = 6350
 import sys
@@ -72,7 +72,8 @@ def main():
                 if (new_solution_cost<max(elite_population_costs)):
                     elite_solution_set[-1]= new_solution
                     elite_population_costs = [EvalElecMulti(elite_solution,distances,vel,load_cap,all_coor,load_unit_cost,cons_rate) for elite_solution in elite_solution_set]
-
+        else:
+            new_solution = []
         if (elite_solution_set):
             best_solution_cost = EvalElecMulti(elite_solution_set[-1],distances,vel,load_cap,all_coor,load_unit_cost,cons_rate)
             max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
