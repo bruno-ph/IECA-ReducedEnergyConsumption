@@ -59,8 +59,18 @@ def PickRandomNodeAndStation(search_zone,rs):
 
 
 def LocalSearch(original_solution,original_solution_cost, depots_count,rechargers_count,all_coors,speed, load_cap, distances, vehicle_weight, vehicle_load, unit_weight, cons_rate, fuel_cap,refuel_rate,max_iter):
-    mask = (original_solution>=depots_count and original_solution<depots_count+rechargers_count)
-    custom_solution=[route[mask[i]] for i,route in enumerate(original_solution)]
+    custom_solution = []
+    station_count =0 
+    for io in original_solution:
+        ci =[]
+        for jo in io:
+            if (jo>=depots_count and jo<depots_count+rechargers_count):
+                ci.append(jo)
+                station_count+=1
+        custom_solution.append(ci)
+    #mask = (original_solution>=depots_count and original_solution<depots_count+rechargers_count)
+    if (station_count==0):
+        return (original_solution,original_solution_cost)
     return_solution =original_solution
     improvement = 1
     best_cost = original_solution_cost
@@ -130,6 +140,7 @@ def LocalSearch(original_solution,original_solution_cost, depots_count,recharger
         if (tmp_cost<best_cost and IsViable(custom_solution,distances,speed,all_coors,load_cap,unit_weight,fuel_cap,cons_rate,refuel_rate,depots_count,rechargers_count)):
             return_solution= custom_solution
             best_cost=tmp_cost
+        ls_iterations+=1
     return (return_solution,best_cost)
 
         #check if is improved

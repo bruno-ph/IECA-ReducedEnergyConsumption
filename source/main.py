@@ -70,7 +70,7 @@ def main():
                 elite_solution_set = [es for _,es in sorted(zip(elite_population_costs,elite_solution_set))]
                 if (new_solution_cost<max(elite_population_costs)):
                     elite_solution_set[-1]= new_solution
-                    elite_population_costs = [EvalElecMulti(elite_solution,distances,vel,load_cap,all_coor,load_unit_cost) for elite_solution in elite_solution_set]
+                    elite_population_costs = [EvalElecMulti(elite_solution,distances,vel,load_cap,all_coor,load_unit_cost,cons_rate) for elite_solution in elite_solution_set]
                     
         else:
             new_solution = []
@@ -80,15 +80,16 @@ def main():
             min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
         pheromone_matrix = UpdatePheromones(RHO, pheromone_matrix, elite_solution_set, elite_population_costs, new_solution, new_solution_cost, max_pheromone, min_pheromone)
     best_solution= elite_solution_set[-1]
-    tentative_improved_solution, improved_solution_cost = LocalSearch(best_solution)
-    if (improved_solution_cost<tentative_improved_solution): #and it is valid!
+    best_solution_cost = EvalElecMulti(best_solution,distances, vel, load_cap, all_coor, load_unit_cost, cons_rate)
+    tentative_improved_solution, improved_solution_cost = LocalSearch(best_solution,best_solution_cost,len(depots),len(rechargers),all_coor,vel,load_cap,distances,1.0,load_cap,load_unit_cost,cons_rate,fuel_cap,refuel_rate,1000)
+    if (improved_solution_cost<best_solution_cost): #and it is valid!
         best_solution=tentative_improved_solution
         best_solution_cost=improved_solution_cost
     for route in best_solution:
         for node in route:
             print(all_coor[node].id+"->",end="")
         print("END")
-    print("Electric Unit Cost:"+best_solution_cost)
+    print("Electric Unit Cost:"+str(best_solution_cost))
     
 
 
