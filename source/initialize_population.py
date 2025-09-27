@@ -10,7 +10,8 @@ def InitializeChargingPopulation(pop_size,distances, depots_count,rechargers_cou
         offset_customer_index = i+depots_count + rechargers_count
         candidate_stations_distances = distances[offset_customer_index][depots_count: depots_count+rechargers_count]
         best_dist = min(candidate_stations_distances)
-        associated_stations[i] = np.where(candidate_stations_distances ==best_dist)[0] + depots_count
+        tmp = np.where(candidate_stations_distances ==best_dist)
+        associated_stations[i] = tmp[0][0] + depots_count
         #encontrar distancia máxima e minima entre um par cliente estação
         if (best_dist>dmax): dmax = best_dist
         if (best_dist<dmin): dmin = best_dist

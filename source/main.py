@@ -1,7 +1,7 @@
 RHO = 0.98
 ALPHA = 1
 BETA = 2
-NUMBER_ITERATIONS = 100 #5000
+NUMBER_ITERATIONS = 100
 REAL_MAX_PAYLOAD_WEIGHT = 3650
 REAL_VEHICLE_WEIGHT = 6350
 import sys
@@ -46,6 +46,7 @@ def main():
     max_pheromone = 1
     min_pheromone = 1
     for iteration in range(NUMBER_ITERATIONS):
+        print(iteration)
         best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count, len(depots),len(customers),len(rechargers), pheromone_matrix, population_size, ALPHA, BETA, distances, all_coor,load_cap, vel,load_unit_cost,cons_rate)
         offspring_population = ChargingOptimization(charging_population,routing_ant_charging_scheme)
 
@@ -79,6 +80,8 @@ def main():
             max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
             min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
         pheromone_matrix = UpdatePheromones(RHO, pheromone_matrix, elite_solution_set, elite_population_costs, new_solution, new_solution_cost, max_pheromone, min_pheromone)
+    if (not elite_solution_set):
+        raise Exception
     best_solution= elite_solution_set[-1]
     best_solution_cost = EvalElecMulti(best_solution,distances, vel, load_cap, all_coor, load_unit_cost, cons_rate)
     tentative_improved_solution, improved_solution_cost = LocalSearch(best_solution,best_solution_cost,len(depots),len(rechargers),all_coor,vel,load_cap,distances,1.0,load_cap,load_unit_cost,cons_rate,fuel_cap,refuel_rate,1000)
