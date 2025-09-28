@@ -67,3 +67,29 @@ def IsViable(vehicle_routes, distances, speed, all_coors, initial_load_amm, unit
                 vehicle_battery = fuel_cap
     return True
 
+def RouteValid(vehicle_route, distances, speed, all_coors, initial_load_amm, unit_weight, fuel_cap, cons_rate, refuel_rate,depots_count,rechargers_count):
+    vehicle_battery = fuel_cap
+    vehicle_load = initial_load_amm
+    elapsed_time = 0.0
+    for i in range(0,len(vehicle_route)-1):
+        dist =distances[vehicle_route[i]][vehicle_route[i+1]]
+        elapsed_time += dist/speed
+        vehicle_battery -= ((vehicle_weight + vehicle_load * unit_weight)*dist) * cons_rate
+        if (vehicle_battery<0):
+            print("BATTERY DEAD")
+            return False
+        if (vehicle_route[i+1]> depots_count+rechargers_count):
+            next_node = all_coors[vehicle_route[i+1]]
+            if (vehicle_load < next_node.demand):
+                raise Exception(f"Negative Vehicle Load - Current Load{vehicle_load} - Demand: {all_coors[vehicle_route[i+1]].demand}")
+            elif (elapsed_time>next_node.due_time):
+                print("OUT OF TIME")
+                return False
+            else:
+                elapsed_time += max(next_node.ready_time - elapsed_time,0) + next_node.service_time
+                vehicle_load -= next_node.demand       
+        else:
+            elapsed_time += (fuel_cap-vehicle_battery) * refuel_rate
+            vehicle_battery = fuel_cap
+    return True
+

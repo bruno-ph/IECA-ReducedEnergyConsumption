@@ -33,7 +33,7 @@ def RouletteWheelSelection(nodes,origin, distances, alpha, beta, pheromone_matri
         curr_sum+=chance
     raise Exception
 
-def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, all_coors, load_unit_cost,cons_rate):
+def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, all_coors, load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count):
     n = len(original_route)
     p = np.full(n,original_route[0]) #Predecessor Node
     #print("P is",p)
@@ -63,7 +63,7 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, all_co
         i = p[j]
         for k in range (i+1,j+1):
             trip.append(original_route[k])
-        trip = TwoOptSearch(trip,distances,speed, cargo_size, all_coors, load_unit_cost,cons_rate )
+        trip = TwoOptSearch(trip,distances,speed, cargo_size, all_coors, load_unit_cost,cons_rate, fuel_cap, refuel_rate,depots_count,rechargers_count )
         trips.append(trip)
         j=i
     return trips
@@ -97,7 +97,7 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_co
             route.insert(0,0)
         
         #print ("Route = ",route)
-        split_route= Split(route,all_coors,distances,load_cap,1e15, speed, all_coors, load_unit_cost,cons_rate)
+        split_route= Split(route,all_coors,distances,load_cap,1e15, speed, all_coors, load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count)
         split_route_cost = EvalElecMulti(split_route,distances, speed, load_cap, all_coors,load_unit_cost, cons_rate)
         if (best_ant_viable):
             if (split_route_cost<best_ant_cost and IsViable(split_route,distances,speed,all_coors,load_cap,load_unit_cost,fuel_cap,cons_rate,refuel_rate,depots_count,rechargers_count)):
