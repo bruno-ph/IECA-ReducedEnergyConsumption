@@ -17,6 +17,7 @@ from generate_route import GenerateRoute
 from eval import EvalElecMulti, IsViable
 from update_pheromones import UpdatePheromones
 from local_search import LocalSearch
+from initialize_elite import InitializeElitePopulation
 def main():
     instanceFile = (sys.argv[1])
     print (instanceFile)
@@ -41,7 +42,7 @@ def main():
     pheromone_matrix = np.full((vertex_count,vertex_count),initial_max_pheromone)
     np.fill_diagonal(pheromone_matrix,0)
 
-    elite_solution_set=[]
+    elite_solution_set=InitializeElitePopulation(len(depots),len(rechargers),len(customers),distances,fuel_cap,load_cap,refuel_rate,vel,load_unit_cost,cons_rate,all_coor)
     elite_population_costs=[]
     max_pheromone = 1
     min_pheromone = 1
