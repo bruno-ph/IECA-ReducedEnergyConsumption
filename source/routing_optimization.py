@@ -1,5 +1,5 @@
 import numpy as np
-from random import randint, uniform
+from random import randint, uniform, choices
 from math import pow
 from two_opt_search import TwoOptSearch
 from eval import EvalElecMulti, IsViable
@@ -46,7 +46,7 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, load_u
         cost = 0
         j=i
         elapsed_time = 0.0
-        delivered_units_per_station=[]
+        # delivered_units_per_station=[]
         while (j<n and cost<=cost_limit and load<=cargo_size):
             load+=vertices[original_route[j]].demand
             elapsed_time+=vertices[original_route[j]].service_time
@@ -65,11 +65,13 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, load_u
 
     trips = []
     j=n-1
+    i = j
     while (i>=1):
         trip=[first_node]
         i = p[j]
         for k in range (i+1,j+1):
             trip.append(original_route[k])
+        trip.append(first_node)
         trip = TwoOptSearch(trip,distances,speed, cargo_size, vertices, load_unit_cost,cons_rate, fuel_cap, refuel_rate,depots_count,rechargers_count )
         trips.append(trip)
         j=i
@@ -84,24 +86,32 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_co
     best_ant_cost= 1e15
     # best_ant_viable = False
     for k in range(population_size):
-        remaining_uses= np.ones(vertex_count)
-        remaining_uses[depots_count:rechargers_count] = 2  * customers_count
+        was_visited= np.zeros(vertex_count)
         route = []
-        possible_next=np.where(remaining_uses>0)[0]
-        current = possible_next[randint(0, len(possible_next)-1)]
+        current = randint(0,vertex_count-1)
         route.append(current)
-        remaining_uses[current]-=1
-        remaining_positions =np.where(remaining_uses>0)[0]
-        while (len(remaining_positions)>0):
-
-            current= RouletteWheelSelection(np.delete(remaining_positions,np.argwhere(remaining_positions==current)),current, distances, alpha, beta, pheromone_matrix)
+        was_visited[current]=1
+        #remaining_positions =np.where(was_visited==0) #[0]here too
+        while (len(np.where(was_visited[depots_count+rechargers_count:]==0)[0])>0):
+            possible_next = np.where(was_visited==0)[0]
+            probabilities = [pow(pheromone_matrix[current][int(pn)], alpha) / max(pow(distances[current][int(pn)], beta),1) for pn in possible_next]
+            next = choices(possible_next,weights=probabilities)[0]
+            if (next==current):
+                if (current>=vertex_count):
+                    next-=1
+                else:
+                    next+=1
+            current=next
+            #current= RouletteWheelSelection(np.delete(remaining_positions,np.argwhere(remaining_positions==current)),current, distances, alpha, beta, pheromone_matrix)
             route.append(current)
-            remaining_uses[current]-=1
-            if len(remaining_positions<=depots_count+rechargers_count) and max(remaining_positions)<(depots_count+rechargers_count):
-                break
-            remaining_positions =np.where(remaining_uses>0)[0]
+            was_visited[current]=1
+            if (current>depots_count+rechargers_count):
+                was_visited[depots_count:depots_count+rechargers_count]=0
         if (route[0]>=depots_count):
-            route.insert(0,0)
+            index0 = route.index(0)
+            route = route[index0:] + route[:index0]
+        
+        
         
         split_route= Split(route,all_coors,distances,load_cap,1e15, speed, load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count)
         split_route_cost = EvalElecMulti(split_route,distances, speed, load_cap, all_coors,load_unit_cost, cons_rate)
