@@ -34,6 +34,7 @@ def RouletteWheelSelection(nodes,origin, distances, alpha, beta, pheromone_matri
     raise Exception
 
 def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, all_coors, load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count):
+    np.fill_diagonal(distances,0)
     n = len(original_route)
     p = np.full(n,original_route[0]) #Predecessor Node
     #print("P is",p)
@@ -44,7 +45,7 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, all_co
         load = 0
         cost = 0
         j=i
-        while (j<n and cost<cost_limit and load<cargo_size):
+        while (j<n and cost<=cost_limit and load<=cargo_size):
             load+=vertices[original_route[j]].demand
             if (i==j):
                 cost = distances[first_node][original_route[j]]*2
@@ -107,7 +108,7 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_co
             if (split_route_cost<best_ant_cost):
                 best_ant_cost = split_route_cost
                 best_ant_route = split_route
-                #check if its viable now
+                best_ant_viable = IsViable(split_route,distances,speed,all_coors,load_cap,load_unit_cost,fuel_cap,cons_rate,refuel_rate,depots_count,rechargers_count)
     #get best ant charging scheme
     best_ant_charging_scheme  = GetAntChargingScheme(best_ant_route,customers_count,depots_count,rechargers_count)
     return (best_ant_route,best_ant_cost,best_ant_charging_scheme)

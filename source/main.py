@@ -42,8 +42,8 @@ def main():
     pheromone_matrix = np.full((vertex_count,vertex_count),initial_max_pheromone)
     np.fill_diagonal(pheromone_matrix,0)
 
-    elite_solution_set=InitializeElitePopulation(len(depots),len(rechargers),len(customers),distances,fuel_cap,load_cap,refuel_rate,vel,load_unit_cost,cons_rate,all_coor)
-    elite_population_costs=[]
+    elite_solution_set=[(InitializeElitePopulation(len(depots),len(rechargers),len(customers),distances,fuel_cap,load_cap,refuel_rate,vel,load_unit_cost,cons_rate,all_coor))]
+    elite_population_costs=[EvalElecMulti(elite_solution,distances,vel,load_cap,all_coor,load_unit_cost,cons_rate) for elite_solution in elite_solution_set]
     max_pheromone = 1
     min_pheromone = 1
     for iteration in range(NUMBER_ITERATIONS):
@@ -79,10 +79,6 @@ def main():
             best_solution_cost = EvalElecMulti(elite_solution_set[-1],distances,vel,load_cap,all_coor,load_unit_cost,cons_rate)
             max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
             min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
-        # else:
-        #     best_solution_cost = EvalElecMulti(new_solution,distances,vel,load_cap,all_coor,load_unit_cost,cons_rate)
-        #     max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
-        #     min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
         pheromone_matrix = UpdatePheromones(RHO, pheromone_matrix, elite_solution_set, elite_population_costs, new_solution, new_solution_cost, max_pheromone, min_pheromone)
     if (not elite_solution_set):
         raise Exception
