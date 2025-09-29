@@ -13,7 +13,7 @@ def FindSearchZone(vehicle_route,original_vehicle_route, breaking_point, depots_
 def FirstBreakingPoint(vehicle_route, distances, all_coors, initial_load_amm, unit_weight, fuel_cap, cons_rate,depots_count,rechargers_count, vehicle_weight):
 
     vehicle_battery = fuel_cap
-    vehicle_load = initial_load_amm
+    vehicle_load = sum([all_coors[x].demand for x in vehicle_route])
     for i in range(0,len(vehicle_route)-1):
         dist =distances[vehicle_route[i]][vehicle_route[i+1]]
         vehicle_battery -= ((vehicle_weight + vehicle_load * unit_weight)*dist) * cons_rate

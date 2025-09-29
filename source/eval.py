@@ -10,7 +10,9 @@ vehicle_weight = 1.0
 def EvalElecSingle(vehicle_route,distances, speed, initial_load_amm, all_coors,unit_weight, cons_rate):
     #speed is m/s, mass is kg, h in joule per second, distance is m
     cost=0.0
-    load_amm = initial_load_amm
+    load_amm = sum([all_coors[x].demand for x in vehicle_route])
+    if (load_amm>initial_load_amm):
+            raise Exception("Vehicle load exceeds max cargo size")
     for i in range(0,len(vehicle_route)-1):
         dist =distances[vehicle_route[i]][vehicle_route[i+1]]
         energy_consumption = ((vehicle_weight + load_amm * unit_weight)*dist) * cons_rate
@@ -43,7 +45,9 @@ def EvalDisMulti(split_routes,distances):
 def IsViable(vehicle_routes, distances, speed, all_coors, initial_load_amm, unit_weight, fuel_cap, cons_rate, refuel_rate,depots_count,rechargers_count):
     for vehicle_route in vehicle_routes:
         vehicle_battery = fuel_cap
-        vehicle_load = initial_load_amm
+        vehicle_load = sum([all_coors[x].demand for x in vehicle_route])
+        if (vehicle_load>initial_load_amm):
+            raise Exception("Vehicle load exceeds max cargo size")
         elapsed_time = 0.0
         for i in range(0,len(vehicle_route)-1):
             dist =distances[vehicle_route[i]][vehicle_route[i+1]]
@@ -69,7 +73,9 @@ def IsViable(vehicle_routes, distances, speed, all_coors, initial_load_amm, unit
 
 def RouteValid(vehicle_route, distances, speed, all_coors, initial_load_amm, unit_weight, fuel_cap, cons_rate, refuel_rate,depots_count,rechargers_count):
     vehicle_battery = fuel_cap
-    vehicle_load = initial_load_amm
+    vehicle_load = sum([all_coors[x].demand for x in vehicle_route])
+    if (vehicle_load>initial_load_amm):
+            raise Exception("Vehicle load exceeds max cargo size")
     elapsed_time = 0.0
     for i in range(0,len(vehicle_route)-1):
         dist =distances[vehicle_route[i]][vehicle_route[i+1]]

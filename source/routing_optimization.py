@@ -107,6 +107,7 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_co
             if (split_route_cost<best_ant_cost):
                 best_ant_cost = split_route_cost
                 best_ant_route = split_route
+                #check if its viable now
     #get best ant charging scheme
     best_ant_charging_scheme  = GetAntChargingScheme(best_ant_route,customers_count,depots_count,rechargers_count)
     return (best_ant_route,best_ant_cost,best_ant_charging_scheme)
