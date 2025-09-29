@@ -75,13 +75,10 @@ def main():
                     elite_population_costs = [EvalElecMulti(elite_solution,distances,vel,load_cap,all_coor,load_unit_cost,cons_rate) for elite_solution in elite_solution_set]
         else:
             new_solution = []
-        if (elite_solution_set):
-            best_solution_cost = EvalElecMulti(elite_solution_set[-1],distances,vel,load_cap,all_coor,load_unit_cost,cons_rate)
-            max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
-            min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
+        best_solution_cost = EvalElecMulti(elite_solution_set[-1],distances,vel,load_cap,all_coor,load_unit_cost,cons_rate)
+        max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
+        min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
         pheromone_matrix = UpdatePheromones(RHO, pheromone_matrix, elite_solution_set, elite_population_costs, new_solution, new_solution_cost, max_pheromone, min_pheromone)
-    if (not elite_solution_set):
-        raise Exception
     best_solution= elite_solution_set[-1]
     best_solution_cost = EvalElecMulti(best_solution,distances, vel, load_cap, all_coor, load_unit_cost, cons_rate)
     tentative_improved_solution, improved_solution_cost = LocalSearch(best_solution,best_solution_cost,len(depots),len(rechargers),all_coor,vel,load_cap,distances,1.0,load_cap,load_unit_cost,cons_rate,fuel_cap,refuel_rate,1000)

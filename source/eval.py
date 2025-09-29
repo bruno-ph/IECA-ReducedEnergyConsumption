@@ -54,14 +54,14 @@ def IsViable(vehicle_routes, distances, speed, all_coors, initial_load_amm, unit
             elapsed_time += dist/speed
             vehicle_battery -= ((vehicle_weight + vehicle_load * unit_weight)*dist) * cons_rate
             if (vehicle_battery<0):
-                print("BATTERY DEAD")
+                #print("BATTERY DEAD")
                 return False
             if (vehicle_route[i+1]> depots_count+rechargers_count):
                 next_node = all_coors[vehicle_route[i+1]]
                 if (vehicle_load < next_node.demand):
                     raise Exception(f"Negative Vehicle Load - Current Load{vehicle_load} - Demand: {all_coors[vehicle_route[i+1]].demand}")
                 elif (elapsed_time>next_node.due_time):
-                    print("OUT OF TIME")
+                    #print("OUT OF TIME")
                     return False
                 else:
                     elapsed_time += max(next_node.ready_time - elapsed_time,0) + next_node.service_time
@@ -82,14 +82,14 @@ def RouteValid(vehicle_route, distances, speed, all_coors, initial_load_amm, uni
         elapsed_time += dist/speed
         vehicle_battery -= ((vehicle_weight + vehicle_load * unit_weight)*dist) * cons_rate
         if (vehicle_battery<0):
-            print("BATTERY DEAD")
+            #print("BATTERY DEAD")
             return False
         if (vehicle_route[i+1]> depots_count+rechargers_count):
             next_node = all_coors[vehicle_route[i+1]]
             if (vehicle_load < next_node.demand):
                 raise Exception(f"Negative Vehicle Load - Current Load{vehicle_load} - Demand: {all_coors[vehicle_route[i+1]].demand}")
             elif (elapsed_time>next_node.due_time):
-                print("OUT OF TIME")
+                #print("OUT OF TIME")
                 return False
             else:
                 elapsed_time += max(next_node.ready_time - elapsed_time,0) + next_node.service_time
