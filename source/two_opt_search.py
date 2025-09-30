@@ -7,6 +7,7 @@ def TwoOptSwap(route,v1,v2):
     new_route = new_route + route[v2+1:]
     return new_route
 
+
 def TwoOptSearch(route,distances,speed, load_cap, all_coors,load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count):
     best_cost = EvalElecSingle(route,distances,speed, load_cap, all_coors,load_unit_cost,cons_rate)
     n=len(route)
@@ -14,8 +15,8 @@ def TwoOptSearch(route,distances,speed, load_cap, all_coors,load_unit_cost,cons_
     route_valid = RouteValid(route, distances, speed, all_coors, load_cap, load_unit_cost, fuel_cap, cons_rate, refuel_rate,depots_count,rechargers_count)
     while (should_continue):
         should_continue=False
-        for i in range (0,n):
-            for j in range(i+2,n):
+        for i in range (1,n-1):
+            for j in range(i+2,n-1):
                 new_route=TwoOptSwap(route,i,j)
                 new_cost=EvalElecSingle(new_route,distances,speed,load_cap,all_coors,load_unit_cost,cons_rate)
                 if (new_cost < best_cost - 0.000001):

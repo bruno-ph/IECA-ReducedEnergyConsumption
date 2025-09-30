@@ -92,7 +92,7 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_co
         route.append(current)
         was_visited[current]=1
         #remaining_positions =np.where(was_visited==0) #[0]here too
-        while (len(np.where(was_visited[depots_count+rechargers_count:]==0)[0])>0):
+        while (len(np.where(was_visited[depots_count+rechargers_count:]==0)[0])>0 or was_visited[0]==0):
             possible_next = np.where(was_visited==0)[0]
             probabilities = [pow(pheromone_matrix[current][int(pn)], alpha) / max(pow(distances[current][int(pn)], beta),1) for pn in possible_next]
             next = choices(possible_next,weights=probabilities)[0]
