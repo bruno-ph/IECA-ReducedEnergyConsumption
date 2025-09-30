@@ -13,7 +13,6 @@ def GenerateRoute(combined_route,charging_scheme,depots_count,rechargers_count,d
                 new_vehicle_route.append(node)
                 if(charging_scheme[node-cust_offset]):
                     next = old_vehicle_route[i+1]
-                    a= [distances[node][st]+distances[st][next] for st in range(depots_count,depots_count+rechargers_count)]
                     station_to_add = np.argmin([distances[node][st]+distances[st][next] for st in range(depots_count,depots_count+rechargers_count)])+depots_count
                     new_vehicle_route.append(station_to_add)
 

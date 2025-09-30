@@ -48,7 +48,7 @@ def Split(original_route,demand, ready_time,service_time,due_time,distances,carg
         elapsed_time = 0.0
         battery = fuel_cap #assumes best case with no load, just to filter out worst cases
         # delivered_units_per_station=[]
-        while (j<n and cost<=cost_limit and load<=cargo_size):
+        while (j<n and cost<=cost_limit and load<=cargo_size and battery>=0):
             load+=demand[original_route[j]]
             elapsed_time+=service_time[original_route[j]]
             if (i==j):
@@ -62,7 +62,7 @@ def Split(original_route,demand, ready_time,service_time,due_time,distances,carg
             if (j>=depots_count and j<depots_count+rechargers_count):
                 elapsed_time+= (fuel_cap-battery)*refuel_rate
 
-            if (load<=cargo_size and cost<=cost_limit):
+            if (load<=cargo_size and cost<=cost_limit and battery>=0):
                 if (v[i-1]+cost < v[j] and elapsed_time<=due_time[original_route[j]]+service_time[original_route[j]]):
                     v[j]=v[i-1]+cost
                     p[j]=i-1
