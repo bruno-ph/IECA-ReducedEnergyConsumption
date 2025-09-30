@@ -33,7 +33,7 @@ def RouletteWheelSelection(nodes,origin, distances, alpha, beta, pheromone_matri
         curr_sum+=chance
     raise Exception
 
-def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count):
+def Split(original_route,demand, ready_time,service_time,due_time,distances,cargo_size,cost_limit, speed, load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count):
     np.fill_diagonal(distances,0)
     n = len(original_route)
     p = np.full(n,original_route[0]) #Predecessor Node
@@ -48,8 +48,8 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, load_u
         elapsed_time = 0.0
         # delivered_units_per_station=[]
         while (j<n and cost<=cost_limit and load<=cargo_size):
-            load+=vertices[original_route[j]].demand
-            elapsed_time+=vertices[original_route[j]].service_time
+            load+=demand[original_route[j]]
+            elapsed_time+=service_time[original_route[j]]
             if (i==j):
                 cost = distances[first_node][original_route[j]]*2
                 elapsed_time += distances[first_node][original_route[j]]/speed
@@ -58,7 +58,7 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, load_u
                 elapsed_time+= distances[original_route[j-1]][original_route[j]]/speed
 
             if (load<=cargo_size and cost<=cost_limit):
-                if (v[i-1]+cost < v[j] and elapsed_time<=vertices[original_route[j]].due_time+vertices[original_route[j]].service_time):
+                if (v[i-1]+cost < v[j] and elapsed_time<=due_time[original_route[j]]+service_time[original_route[j]]):
                     v[j]=v[i-1]+cost
                     p[j]=i-1
                 j+=1
@@ -72,7 +72,7 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, load_u
         for k in range (i+1,j+1):
             trip.append(original_route[k])
         trip.append(first_node)
-        trip = TwoOptSearch(trip,distances,speed, cargo_size, vertices, load_unit_cost,cons_rate, fuel_cap, refuel_rate,depots_count,rechargers_count )
+        trip = TwoOptSearch(trip,distances,speed, cargo_size, demand,ready_time, service_time,due_time, load_unit_cost,cons_rate, fuel_cap, refuel_rate,depots_count,rechargers_count )
         trips.append(trip)
         j=i
     return trips
@@ -81,7 +81,7 @@ def Split(original_route,vertices,distances,cargo_size,cost_limit, speed, load_u
 
     
 
-def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_count, pheromone_matrix, population_size, alpha, beta, distances, all_coors, load_cap, speed,load_unit_cost,cons_rate,fuel_cap,refuel_rate):
+def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_count, pheromone_matrix, population_size, alpha, beta, distances, demand,ready_time, service_time,due_time, load_cap, speed,load_unit_cost,cons_rate,fuel_cap,refuel_rate):
     best_ant_route = []
     best_ant_cost= 1e15
     # best_ant_viable = False
@@ -113,8 +113,8 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_co
         
         
         
-        split_route= Split(route,all_coors,distances,load_cap,1e15, speed, load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count)
-        split_route_cost = EvalElecMulti(split_route,distances, speed, load_cap, all_coors,load_unit_cost, cons_rate)
+        split_route= Split(route,demand,ready_time, service_time,due_time,distances,load_cap,1e15, speed, load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count)
+        split_route_cost = EvalElecMulti(split_route,distances, speed, load_cap, demand,load_unit_cost, cons_rate)
         if (split_route_cost<best_ant_cost):
                 best_ant_cost = split_route_cost
                 best_ant_route = split_route

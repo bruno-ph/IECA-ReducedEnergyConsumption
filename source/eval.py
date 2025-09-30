@@ -7,10 +7,10 @@ transmission_effic = 0.89
 vehicle_weight = 1.0
 #speed m/s, a is m/s², h is kW (second by second)
 
-def EvalElecSingle(vehicle_route,distances, speed, initial_load_amm, all_coors,unit_weight, cons_rate):
+def EvalElecSingle(vehicle_route,distances, speed, initial_load_amm, demand,unit_weight, cons_rate):
     #speed is m/s, mass is kg, h in joule per second, distance is m
     cost=0.0
-    load_amm = sum([all_coors[x].demand for x in vehicle_route])
+    load_amm = sum([demand[x] for x in vehicle_route])
     if (load_amm>initial_load_amm):
             raise Exception("Vehicle load exceeds max cargo size")
     for i in range(0,len(vehicle_route)-1):
@@ -21,7 +21,7 @@ def EvalElecSingle(vehicle_route,distances, speed, initial_load_amm, all_coors,u
         # h = alpha+beta*load_mass #watt or joule per second
         # cost += h*(dist/speed) #total joules
         cost += energy_consumption
-        load_amm = max(load_amm - all_coors[vehicle_route[i+1]].demand,0)
+        load_amm = max(load_amm - demand[vehicle_route[i+1]],0)
     return cost
 
 def EvalDisSingle(vehicle_route,distances):
@@ -30,10 +30,10 @@ def EvalDisSingle(vehicle_route,distances):
         cost+=distances[vehicle_route[i]][vehicle_route[i+1]]
     return cost
 
-def EvalElecMulti(split_routes,distances, speed, initial_load_mass, all_coors,load_unit_cost,cons_rate):
+def EvalElecMulti(split_routes,distances, speed, initial_load_mass, demand,load_unit_cost,cons_rate):
     cost = 0.0
     for vehicle_route in split_routes:
-        cost+= EvalElecSingle(vehicle_route,distances,speed, initial_load_mass, all_coors,load_unit_cost,cons_rate)
+        cost+= EvalElecSingle(vehicle_route,distances,speed, initial_load_mass, demand,load_unit_cost,cons_rate)
     return cost
 
 def EvalDisMulti(split_routes,distances):
@@ -42,10 +42,10 @@ def EvalDisMulti(split_routes,distances):
         cost+= EvalDisSingle(vehicle_route,distances)
     return cost
 
-def IsViable(vehicle_routes, distances, speed, all_coors, initial_load_amm, unit_weight, fuel_cap, cons_rate, refuel_rate,depots_count,rechargers_count):
+def IsViable(vehicle_routes, distances, speed, demand,ready_time, service_time,due_time, initial_load_amm, unit_weight, fuel_cap, cons_rate, refuel_rate,depots_count,rechargers_count):
     for vehicle_route in vehicle_routes:
         vehicle_battery = fuel_cap
-        vehicle_load = sum([all_coors[x].demand for x in vehicle_route])
+        vehicle_load = sum([demand[x] for x in vehicle_route])
         if (vehicle_load>initial_load_amm):
             raise Exception("Vehicle load exceeds max cargo size")
         elapsed_time = 0.0
@@ -57,23 +57,23 @@ def IsViable(vehicle_routes, distances, speed, all_coors, initial_load_amm, unit
                 #print("BATTERY DEAD")
                 return False
             if (vehicle_route[i+1]> depots_count+rechargers_count):
-                next_node = all_coors[vehicle_route[i+1]]
-                if (vehicle_load < next_node.demand):
-                    raise Exception(f"Negative Vehicle Load - Current Load{vehicle_load} - Demand: {all_coors[vehicle_route[i+1]].demand}")
-                elif (elapsed_time>next_node.due_time):
+                next_node = vehicle_route[i+1]
+                if (vehicle_load < demand[next_node]):
+                    raise Exception(f"Negative Vehicle Load - Current Load{vehicle_load} - Demand: {[demand[vehicle_route[i+1]]]}")
+                elif (elapsed_time>due_time[next_node]):
                     #print("OUT OF TIME")
                     return False
                 else:
-                    elapsed_time += max(next_node.ready_time - elapsed_time,0) + next_node.service_time
-                    vehicle_load -= next_node.demand       
+                    elapsed_time += max(ready_time[next_node] - elapsed_time,0) + service_time[next_node]
+                    vehicle_load -= demand[next_node] 
             else:
                 elapsed_time += (fuel_cap-vehicle_battery) * refuel_rate
                 vehicle_battery = fuel_cap
     return True
 
-def RouteValid(vehicle_route, distances, speed, all_coors, initial_load_amm, unit_weight, fuel_cap, cons_rate, refuel_rate,depots_count,rechargers_count):
+def RouteValid(vehicle_route, distances, speed, demand,ready_time, service_time,due_time, initial_load_amm, unit_weight, fuel_cap, cons_rate, refuel_rate,depots_count,rechargers_count):
     vehicle_battery = fuel_cap
-    vehicle_load = sum([all_coors[x].demand for x in vehicle_route])
+    vehicle_load = sum([demand[x] for x in vehicle_route])
     if (vehicle_load>initial_load_amm):
             raise Exception("Vehicle load exceeds max cargo size")
     elapsed_time = 0.0
@@ -85,15 +85,15 @@ def RouteValid(vehicle_route, distances, speed, all_coors, initial_load_amm, uni
             #print("BATTERY DEAD")
             return False
         if (vehicle_route[i+1]> depots_count+rechargers_count):
-            next_node = all_coors[vehicle_route[i+1]]
-            if (vehicle_load < next_node.demand):
-                raise Exception(f"Negative Vehicle Load - Current Load{vehicle_load} - Demand: {all_coors[vehicle_route[i+1]].demand}")
-            elif (elapsed_time>next_node.due_time):
+            next_node = vehicle_route[i+1]
+            if (vehicle_load < demand[next_node]):
+                raise Exception(f"Negative Vehicle Load - Current Load{vehicle_load} - Demand: {[demand[vehicle_route[i+1]]]}")
+            elif (elapsed_time>due_time[next_node]):
                 #print("OUT OF TIME")
                 return False
             else:
-                elapsed_time += max(next_node.ready_time - elapsed_time,0) + next_node.service_time
-                vehicle_load -= next_node.demand       
+                elapsed_time += max(ready_time[next_node] - elapsed_time,0) + service_time[next_node]
+                vehicle_load -= demand[next_node]  
         else:
             elapsed_time += (fuel_cap-vehicle_battery) * refuel_rate
             vehicle_battery = fuel_cap

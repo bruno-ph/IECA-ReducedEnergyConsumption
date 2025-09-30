@@ -10,21 +10,21 @@ def FindSearchZone(vehicle_route,original_vehicle_route, breaking_point, depots_
     search_zone = vehicle_route[search_zone_start_index:search_zone_end_index]
     return search_zone
 
-def FirstBreakingPoint(vehicle_route, distances, all_coors, initial_load_amm, unit_weight, fuel_cap, cons_rate,depots_count,rechargers_count, vehicle_weight):
+def FirstBreakingPoint(vehicle_route, distances, demand, initial_load_amm, unit_weight, fuel_cap, cons_rate,depots_count,rechargers_count, vehicle_weight):
 
     vehicle_battery = fuel_cap
-    vehicle_load = sum([all_coors[x].demand for x in vehicle_route])
+    vehicle_load = sum([demand[x] for x in vehicle_route])
     for i in range(0,len(vehicle_route)-1):
         dist =distances[vehicle_route[i]][vehicle_route[i+1]]
         vehicle_battery -= ((vehicle_weight + vehicle_load * unit_weight)*dist) * cons_rate
         if (vehicle_battery<0):
             return i+1
         if (vehicle_route[i+1]> depots_count+rechargers_count):
-            next_node = all_coors[vehicle_route[i+1]]
+            next_node = [vehicle_route[i+1]]
             if (vehicle_load < next_node.demand):
-                raise Exception(f"Negative Vehicle Load - Current Load{vehicle_load} - Demand: {all_coors[vehicle_route[i+1]].demand}")
+                raise Exception(f"Negative Vehicle Load - Current Load{vehicle_load} - Demand: {demand[vehicle_route[i+1]]}")
             else:
-                vehicle_load -= next_node.demand       
+                vehicle_load -= demand[next_node]   
         else:
             vehicle_battery = fuel_cap
     return -1
@@ -58,7 +58,7 @@ def PickRandomNodeAndStation(search_zone,rs):
     raise Exception
 
 
-def LocalSearch(original_solution,original_solution_cost, depots_count,rechargers_count,all_coors,speed, load_cap, distances, vehicle_weight, vehicle_load, unit_weight, cons_rate, fuel_cap,refuel_rate,max_iter):
+def LocalSearch(original_solution,original_solution_cost, depots_count,rechargers_count, demand,ready_time, service_time,due_time,speed, load_cap, distances, vehicle_weight, unit_weight, cons_rate, fuel_cap,refuel_rate,max_iter):
     custom_solution = []
     station_count =0 
     for io in original_solution:
@@ -87,7 +87,8 @@ def LocalSearch(original_solution,original_solution_cost, depots_count,recharger
                 search_zone = custom_route[search_zone_start,breaking_point_index]
                 reachable_stations=[] #matrix of reachable stations for each node in search zone
                 for ni,node in enumerate(search_zone):
-                    rs = FindReachableStations(node,search_zone[ni+1],depots_count,rechargers_count,distances, vehicle_weight, vehicle_load, unit_weight, cons_rate, fuel_cap) #should return an array of tuples {station number, cost to station} for that node
+                    #IMPORTANT, NOT SURE IF I SHOULD PASS LOAD CAP HERE, CHECK IF YOU NEED TO USE ANOTHER LOAD PARAMETER
+                    rs = FindReachableStations(node,search_zone[ni+1],depots_count,rechargers_count,distances, vehicle_weight, load_cap, unit_weight, cons_rate, fuel_cap) #should return an array of tuples {station number, cost to station} for that node
                     if rs:
                         reachable_stations.append(rs)
                     else:
@@ -95,7 +96,7 @@ def LocalSearch(original_solution,original_solution_cost, depots_count,recharger
                 node_to_receive_station, station_to_be_added = PickRandomNodeAndStation(search_zone,rs)
                 node_to_receive_station_index = np.where(custom_route == node_to_receive_station)[-1]
                 custom_route.insert(station_to_be_added,node_to_receive_station_index) #watch out for off by one error
-                breaking_point_index= FirstBreakingPoint(custom_route, distances, all_coors, load_cap, unit_weight, fuel_cap, cons_rate, depots_count, rechargers_count, vehicle_weight) #reset and iterate
+                breaking_point_index= FirstBreakingPoint(custom_route, distances, demand, load_cap, unit_weight, fuel_cap, cons_rate, depots_count, rechargers_count, vehicle_weight) #reset and iterate
                 iterations+=1
             custom_solution[i]=custom_route
         route_station_indexes = []
@@ -103,7 +104,7 @@ def LocalSearch(original_solution,original_solution_cost, depots_count,recharger
             for s_i,node in enumerate(len(route)):
                 if (node>=depots_count and node<depots_count+rechargers_count):
                     route_station_indexes.append((r_i,s_i))
-        tmp_cost = EvalElecMulti(custom_solution,distances,speed,load_cap,all_coors,unit_weight,cons_rate)
+        tmp_cost = EvalElecMulti(custom_solution,distances,speed,load_cap,demand,unit_weight,cons_rate)
         #exchange
         for i in route_station_indexes:
             for j in range(i,len(route_station_indexes)):
@@ -114,8 +115,8 @@ def LocalSearch(original_solution,original_solution_cost, depots_count,recharger
                 tmp=custom_solution[route1][station1]
                 custom_solution[route1][station1] = custom_solution[route2][station2]
                 custom_solution[route2][station2] = tmp
-                tmp_cost_exchange = EvalElecMulti(custom_solution,distances,speed,load_cap,all_coors,unit_weight,cons_rate)
-                if (tmp_cost<tmp_cost_exchange or not IsViable(custom_solution,distances,speed,all_coors,load_cap,unit_weight,fuel_cap,cons_rate,refuel_rate,depots_count,rechargers_count)):
+                tmp_cost_exchange = EvalElecMulti(custom_solution,distances,speed,load_cap,demand,unit_weight,cons_rate)
+                if (tmp_cost<tmp_cost_exchange or not IsViable(custom_solution,distances,speed, demand,ready_time, service_time,due_time,load_cap,unit_weight,fuel_cap,cons_rate,refuel_rate,depots_count,rechargers_count)):
                     tmp=custom_solution[route1][station1]
                     custom_solution[route1][station1] = custom_solution[route2][station2]
                     custom_solution[route2][station2] = tmp
@@ -130,14 +131,14 @@ def LocalSearch(original_solution,original_solution_cost, depots_count,recharger
                 station1=route_station_indexes[i][1]
                 tmp=custom_solution[route1][station1]
                 custom_solution[route1][station1] = j
-                tmp_cost_exchange = EvalElecMulti(custom_solution,distances,speed,load_cap,all_coors,unit_weight,cons_rate)
-                if (tmp_cost<tmp_cost_exchange or not IsViable(custom_solution,distances,speed,all_coors,load_cap,unit_weight,fuel_cap,cons_rate,refuel_rate,depots_count,rechargers_count)):
+                tmp_cost_exchange = EvalElecMulti(custom_solution,distances,speed,load_cap,demand,unit_weight,cons_rate)
+                if (tmp_cost<tmp_cost_exchange or not IsViable(custom_solution,distances,speed, demand,ready_time, service_time,due_time,load_cap,unit_weight,fuel_cap,cons_rate,refuel_rate,depots_count,rechargers_count)):
                     tmp=custom_solution[route1][station1]
                     custom_solution[route1][station1] = tmp
                 else:
                     tmp_cost= tmp_cost_exchange
         improvement = -tmp_cost-best_cost
-        if (tmp_cost<best_cost and IsViable(custom_solution,distances,speed,all_coors,load_cap,unit_weight,fuel_cap,cons_rate,refuel_rate,depots_count,rechargers_count)):
+        if (tmp_cost<best_cost and IsViable(custom_solution,distances,speed, demand,ready_time, service_time,due_time,load_cap,unit_weight,fuel_cap,cons_rate,refuel_rate,depots_count,rechargers_count)):
             return_solution= custom_solution
             best_cost=tmp_cost
         ls_iterations+=1

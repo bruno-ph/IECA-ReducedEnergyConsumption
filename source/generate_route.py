@@ -26,6 +26,7 @@ def GenerateRoute(combined_route, charging_scheme,depots_count,rechargers_count)
                                     new_vehicle_route.append(old_vehicle_route[j])
                                     break
                                 j-=1
+        new_vehicle_route.append(old_vehicle_route[-1])
         new_route.append(new_vehicle_route)
     return new_route
         
