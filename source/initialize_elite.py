@@ -59,6 +59,26 @@ def InitializeElitePopulation(depots_count,rechargers_count,customers_count,dist
             else:
                 objective_rank_index+=1
         #THEN find way back to depot
+        last_node = route[-1]
+        depot = 0
+        required_battery = (((1.0 + load * unit_weight)*distances[last_node][depot]) * cons_rate)
+        candidate_stations = sorted([(distances[st][depot],st) for st in range(depots_count,depots_count+rechargers_count)])
+        while (required_battery>battery):
+            next_station = next(((station for station in candidate_stations if  (((1.0 + load * unit_weight)*distances[last_node][station[1]]) * cons_rate)<=battery  )),None)
+            candidate_stations= candidate_stations[:(candidate_stations.index(next_station))]
+            #do all the step updates
+            route.append(next_station[1])
+            dist = distances[last_node][route[-1]]
+            last_node = route[-1]
+            battery_to_station = (((1.0 + load * unit_weight)*dist) * cons_rate)
+            elapsed_time += dist/vel + (fuel_cap -(battery-battery_to_station))*refuel_rate
+            battery = fuel_cap
+            cost +=battery_to_station
+            required_battery = (((1.0 + load * unit_weight)*distances[last_node][depot]) * cons_rate)
+        route.append(depot) 
+            
+
+
         ranked_customers = [c for c in ranked_customers if c[1] not in route]
         routes.append(route)
         total_cost+=cost

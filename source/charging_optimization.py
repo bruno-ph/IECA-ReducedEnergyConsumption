@@ -9,7 +9,7 @@ def ChargingOptimization(charging_population,routing_ant_charging_scheme):
     parent_population2 = charging_population[int(pop_size/2):].astype(bool)
     offspring = np.zeros((pop_size,cust_size))
     randomization_mask = np.random.choice([True,False],size= (offspring_size,cust_size))
-    offspring = (parent_population1 | routing_ant_bool)
+    offspring = (parent_population1 & routing_ant_bool)
     offspring[randomization_mask]= parent_population2[randomization_mask]
     bitflip_mask = np.random.choice([True,False],size= (offspring_size,cust_size), p =(1/cust_size,1-(1/cust_size)))
     offspring= offspring ^ bitflip_mask

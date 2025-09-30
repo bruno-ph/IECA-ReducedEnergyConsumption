@@ -79,7 +79,7 @@ def LocalSearch(original_solution,original_solution_cost, depots_count,recharger
         for i in range (len(custom_solution)):
             custom_route = custom_solution[i]
             iterations = 0
-            breaking_point_index= FirstBreakingPoint(custom_route)
+            breaking_point_index= FirstBreakingPoint(custom_route,distances,demand,load_cap,unit_weight,fuel_cap,cons_rate,depots_count,rechargers_count,vehicle_weight)
             while (breaking_point_index!=-1):
                 if (iterations>=len(custom_route)-2):
                     raise Exception
@@ -101,7 +101,7 @@ def LocalSearch(original_solution,original_solution_cost, depots_count,recharger
             custom_solution[i]=custom_route
         route_station_indexes = []
         for r_i,route in enumerate(custom_solution):
-            for s_i,node in enumerate(len(route)):
+            for s_i,node in enumerate((route)):
                 if (node>=depots_count and node<depots_count+rechargers_count):
                     route_station_indexes.append((r_i,s_i))
         tmp_cost = EvalElecMulti(custom_solution,distances,speed,load_cap,demand,unit_weight,cons_rate)

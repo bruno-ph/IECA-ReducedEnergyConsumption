@@ -44,6 +44,8 @@ def EvalDisMulti(split_routes,distances):
 
 def IsViable(vehicle_routes, distances, speed, demand,ready_time, service_time,due_time, initial_load_amm, unit_weight, fuel_cap, cons_rate, refuel_rate,depots_count,rechargers_count):
     for vehicle_route in vehicle_routes:
+        if (vehicle_route[0]>=depots_count or vehicle_route[-1]>=depots_count):
+            return False
         vehicle_battery = fuel_cap
         vehicle_load = sum([demand[x] for x in vehicle_route])
         if (vehicle_load>initial_load_amm):
@@ -72,6 +74,8 @@ def IsViable(vehicle_routes, distances, speed, demand,ready_time, service_time,d
     return True
 
 def RouteValid(vehicle_route, distances, speed, demand,ready_time, service_time,due_time, initial_load_amm, unit_weight, fuel_cap, cons_rate, refuel_rate,depots_count,rechargers_count):
+    if (vehicle_route[0]>=depots_count or vehicle_route[-1]>=depots_count):
+        return False
     vehicle_battery = fuel_cap
     vehicle_load = sum([demand[x] for x in vehicle_route])
     if (vehicle_load>initial_load_amm):
