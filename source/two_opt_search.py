@@ -17,6 +17,8 @@ def TwoOptSearch(route,distances,speed, load_cap, demand,ready_time, service_tim
         should_continue=False
         for i in range (1,n-1):
             for j in range(i+2,n-1):
+                if (i<depots_count+rechargers_count or j<depots_count+rechargers_count):
+                    continue
                 new_route=TwoOptSwap(route,i,j)
                 new_cost=EvalElecSingle(new_route,distances,speed,load_cap,demand,load_unit_cost,cons_rate)
                 if (new_cost < best_cost - 0.000001):

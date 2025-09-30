@@ -11,9 +11,9 @@ def UpdatePheromones(rho, pheromone_matrix, elite_set, new_ant,new_ant_cost,max_
         for route in elite_set[i][1]:
             for j in range (0,len(route)-1):
                 pheromone_matrix[route[j],route[j+1]] += 1/cost
-        for route in new_ant:
-            for j in range (0,len(route)-1):
-                pheromone_matrix[route[j],route[j+1]] += 1/new_ant_cost
+    for route in new_ant:
+        for j in range (0,len(route)-1):
+            pheromone_matrix[route[j],route[j+1]] += 1/new_ant_cost
     pheromone_matrix[pheromone_matrix > max_phero] = max_phero
     pheromone_matrix[pheromone_matrix < min_phero] = min_phero
     return pheromone_matrix

@@ -1,6 +1,6 @@
 RHO = 0.98
-ALPHA = 10
-BETA = 1
+ALPHA = 1
+BETA = 2
 NUMBER_ITERATIONS = 5000
 REAL_MAX_PAYLOAD_WEIGHT = 3650
 REAL_VEHICLE_WEIGHT = 6350
@@ -71,13 +71,15 @@ def main():
         #combine and rate charging and offspring population
         charging_population = charging_population.astype(bool)
         combined_charging_population = np.concatenate((charging_population,offspring_population))
-        charging_population_ratings = np.zeros(len(combined_charging_population))
-        for im,member in enumerate(combined_charging_population):
-            charging_population_ratings[im] = EvalElecMulti(GenerateRoute(best_routing_ant,member,depots_count,recharger_count),distances,vel,load_cap,demand,load_unit_cost,cons_rate)
+        charging_population_ratings = []
+        for member in combined_charging_population:
+            created_ant = GenerateRoute(best_routing_ant,member,depots_count,recharger_count,distances)
+            viable_offset = 1e6*int(not IsViable(created_ant,distances,vel,demand,ready_time,service_time,due_date,load_cap,load_unit_cost,fuel_cap,cons_rate,refuel_rate,depots_count,recharger_count))
+            charging_population_ratings.append(viable_offset+(EvalElecMulti(created_ant,distances,vel,load_cap,demand,load_unit_cost,cons_rate)))
         best_charging_schemes_indexes = np.argsort(charging_population_ratings)[:population_size]
         best_charging_scheme= combined_charging_population[best_charging_schemes_indexes[0]]
         charging_population = combined_charging_population[best_charging_schemes_indexes]
-        new_solution = GenerateRoute(best_routing_ant, best_charging_scheme, depots_count,recharger_count)
+        new_solution = GenerateRoute(best_routing_ant, best_charging_scheme, depots_count,recharger_count,distances)
         new_solution_cost = EvalElecMulti(new_solution,distances,vel,load_cap,demand,load_unit_cost,cons_rate)
         
         if (IsViable(new_solution,distances, vel, demand,ready_time, service_time,due_date, load_cap, load_unit_cost, fuel_cap, cons_rate,refuel_rate,depots_count,recharger_count)):
@@ -86,8 +88,9 @@ def main():
                 elite_population.append((new_solution_cost,new_solution))
                 elite_population.sort()
             elif (new_solution_cost<max(elite_population)[0]):
-                    elite_population[-1]= new_solution
+                    elite_population[-1]= (new_solution_cost,new_solution)
                     elite_population.sort()
+            hits+=1
         else:
             new_solution = []
         best_solution_cost = elite_population[0][0]
@@ -96,10 +99,10 @@ def main():
         pheromone_matrix = UpdatePheromones(RHO, pheromone_matrix, elite_population, new_solution, new_solution_cost, max_pheromone, min_pheromone)
     best_solution= elite_population[0][1]
     best_solution_cost = elite_population[0][0]
-    tentative_improved_solution, improved_solution_cost = LocalSearch(best_solution,best_solution_cost,depots_count,recharger_count, demand,ready_time, service_time,due_date,vel,load_cap,distances,1.0,load_unit_cost,cons_rate,fuel_cap,refuel_rate,1000)
-    if (improved_solution_cost<best_solution_cost): #and it is valid!
-        best_solution=tentative_improved_solution
-        best_solution_cost=improved_solution_cost
+    # tentative_improved_solution, improved_solution_cost = LocalSearch(best_solution,best_solution_cost,depots_count,recharger_count, demand,ready_time, service_time,due_date,vel,load_cap,distances,1.0,load_unit_cost,cons_rate,fuel_cap,refuel_rate,1000)
+    # if (improved_solution_cost<best_solution_cost): #and it is valid!
+    #     best_solution=tentative_improved_solution
+    #     best_solution_cost=improved_solution_cost
     for route in best_solution:
         for node in route:
             print(id[node]+"->",end="")

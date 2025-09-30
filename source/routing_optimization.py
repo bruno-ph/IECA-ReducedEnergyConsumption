@@ -46,6 +46,7 @@ def Split(original_route,demand, ready_time,service_time,due_time,distances,carg
         cost = 0
         j=i
         elapsed_time = 0.0
+        battery = fuel_cap #assumes best case with no load, just to filter out worst cases
         # delivered_units_per_station=[]
         while (j<n and cost<=cost_limit and load<=cargo_size):
             load+=demand[original_route[j]]
@@ -53,9 +54,13 @@ def Split(original_route,demand, ready_time,service_time,due_time,distances,carg
             if (i==j):
                 cost = distances[first_node][original_route[j]]*2
                 elapsed_time += distances[first_node][original_route[j]]/speed
+                battery -=  distances[first_node][original_route[j]] * cons_rate
             else:
                 cost = cost - distances[first_node][original_route[j-1]] + distances[original_route[j-1]][original_route[j]] + distances[first_node][original_route[j]]
                 elapsed_time+= distances[original_route[j-1]][original_route[j]]/speed
+                battery -=  distances[original_route[j-1]][original_route[j]] * cons_rate
+            if (j>=depots_count and j<depots_count+rechargers_count):
+                elapsed_time+= (fuel_cap-battery)*refuel_rate
 
             if (load<=cargo_size and cost<=cost_limit):
                 if (v[i-1]+cost < v[j] and elapsed_time<=due_time[original_route[j]]+service_time[original_route[j]]):
@@ -72,7 +77,7 @@ def Split(original_route,demand, ready_time,service_time,due_time,distances,carg
         for k in range (i+1,j+1):
             trip.append(original_route[k])
         trip.append(first_node)
-        trip = TwoOptSearch(trip,distances,speed, cargo_size, demand,ready_time, service_time,due_time, load_unit_cost,cons_rate, fuel_cap, refuel_rate,depots_count,rechargers_count )
+        #trip = TwoOptSearch(trip,distances,speed, cargo_size, demand,ready_time, service_time,due_time, load_unit_cost,cons_rate, fuel_cap, refuel_rate,depots_count,rechargers_count )
         trips.append(trip)
         j=i
     return trips
