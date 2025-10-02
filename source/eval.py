@@ -83,3 +83,38 @@ def RouteValid(vehicle_route, distances, speed, demand,ready_time, service_time,
             vehicle_battery = fuel_cap
     return True
 
+def EvalConstraint(new_solution,distances, vel, demand,ready_time, service_time,due_time, load_cap, unit_weight, fuel_cap, cons_rate,refuel_rate,depots_count,rechargers_count):
+    battery_penalty = 0
+    demand_penalty = 0
+    time_penalty = 0
+    for vehicle_route in new_solution:    
+        if (vehicle_route[0]>=depots_count or vehicle_route[-1]>=depots_count):
+            raise Exception
+        vehicle_battery = fuel_cap
+        vehicle_load = sum([demand[x] for x in vehicle_route])
+        if (vehicle_load>load_cap):
+                raise Exception("Vehicle load exceeds max cargo size")
+        elapsed_time = 0.0
+        for i in range(0,len(vehicle_route)-1):
+            dist =distances[vehicle_route[i]][vehicle_route[i+1]]
+            elapsed_time += dist/vel
+            vehicle_battery -= ((vehicle_weight + vehicle_load * unit_weight)*dist) * cons_rate
+            if (vehicle_battery<0):
+                battery_penalty-=vehicle_battery
+            if (vehicle_route[i+1]> depots_count+rechargers_count):
+                next_node = vehicle_route[i+1]
+                if (vehicle_load < demand[next_node]):
+                    demand_penalty += demand[next_node]-vehicle_load
+                    raise Exception(f"Negative Vehicle Load - Current Load{vehicle_load} - Demand: {[demand[vehicle_route[i+1]]]}")
+                elif (elapsed_time>due_time[next_node]):
+                    time_penalty+= -elapsed_time - due_time[next_node]
+                else:
+                    elapsed_time += max(ready_time[next_node] - elapsed_time,0) + service_time[next_node]
+                    vehicle_load -= demand[next_node]  
+            else:
+                elapsed_time += (fuel_cap-vehicle_battery) * refuel_rate
+                vehicle_battery = fuel_cap
+        if ((battery_penalty+demand_penalty+time_penalty)>0!=IsViable(new_solution,distances, vel, demand,ready_time, service_time,due_time, load_cap, unit_weight, fuel_cap, cons_rate,refuel_rate,depots_count,rechargers_count)):
+            raise Exception
+        return (battery_penalty+demand_penalty+time_penalty)
+

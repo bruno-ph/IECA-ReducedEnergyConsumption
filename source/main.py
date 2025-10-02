@@ -13,12 +13,14 @@ from calc_distances import CalcDistances
 from nearest_neighbour import NearestNeighbourCost
 from routing_optimization import RoutingOptimization
 from initialize_population import InitializeChargingPopulation
-from charging_optimization import ChargingOptimization
+from charging_optimization import ChargingOptimization, TournamentSelection
 from generate_route import GenerateRoute
-from eval import EvalElecMulti, IsViable, EvalDisMulti
+from eval import EvalElecMulti, IsViable, EvalDisMulti, EvalConstraint
 from update_pheromones import UpdatePheromones
 from local_search import LocalSearch
 from initialize_elite import InitializeElitePopulation
+from binary_population import BinaryPopulation, CalculateCost
+from environmental_selection import EnvironmentalSelection
 def main():
     instanceFile = (sys.argv[1])
     print (instanceFile)
@@ -33,7 +35,10 @@ def main():
     print(initial_cost)
 
     population_size = min(customer_count,MAX_ELITE)
-    charging_population = InitializeChargingPopulation(population_size, distances, depots_count,recharger_count,customer_count)
+
+    charging_population_masks = InitializeChargingPopulation(population_size, distances, depots_count,recharger_count,customer_count)
+    charging_population = [BinaryPopulation(mask,CalculateCost(mask, distances, depots_count, recharger_count,load_cap,cons_rate,load_unit_cost), 1e15)  for mask in charging_population_masks]
+    charging_population,front_number,crowding_distance = EnvironmentalSelection(charging_population, population_size)
 
     initial_max_pheromone = 1 / ((1 - RHO) * initial_cost)
     pheromone_matrix = np.full((vertex_count,vertex_count),initial_max_pheromone)
@@ -66,20 +71,25 @@ def main():
     for iteration in range(NUMBER_ITERATIONS):
         print(iteration)
         best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count,depots_count,customer_count,recharger_count, pheromone_matrix, population_size, ALPHA, BETA, distances, demand,ready_time, service_time,due_date,load_cap, vel,load_unit_cost,cons_rate,fuel_cap,refuel_rate)
-        offspring_population = ChargingOptimization(charging_population,routing_ant_charging_scheme)
+        mating_pool = TournamentSelection(2,2*population_size,front_number,-crowding_distance)
+        offspring_population = ChargingOptimization(charging_population[mating_pool],routing_ant_charging_scheme)
 
         #combine and rate charging and offspring population
-        charging_population = charging_population.astype(bool)
-        combined_charging_population = np.concatenate((charging_population,offspring_population))
-        charging_population_ratings = []
-        for member in combined_charging_population:
-            created_ant = GenerateRoute(best_routing_ant,member,depots_count,recharger_count,distances)
-            viable_offset = 1e6*int(not IsViable(created_ant,distances,vel,demand,ready_time,service_time,due_date,load_cap,load_unit_cost,fuel_cap,cons_rate,refuel_rate,depots_count,recharger_count))
-            charging_population_ratings.append(viable_offset+(EvalElecMulti(created_ant,distances,vel,load_cap,demand,load_unit_cost,cons_rate)))
-        best_charging_schemes_indexes = np.argsort(charging_population_ratings)[:population_size]
-        best_charging_scheme= combined_charging_population[best_charging_schemes_indexes[0]]
-        charging_population = combined_charging_population[best_charging_schemes_indexes]
-        new_solution = GenerateRoute(best_routing_ant, best_charging_scheme, depots_count,recharger_count,distances)
+        #charging_population = charging_population.astype(bool)
+        
+        best_penalty = 1e15
+        best_cost = 1e15
+        best_offspring = offspring_population[0]
+        for mi,member in enumerate(offspring_population):
+            created_ant = GenerateRoute(best_routing_ant,member.mask,depots_count,recharger_count,distances)
+            member.cost = (EvalElecMulti(created_ant,distances,vel,load_cap,demand,load_unit_cost,cons_rate))
+            member.cons = (EvalConstraint(created_ant))
+            if ((best_penalty>member.cons) or((best_penalty==member.cons) and (best_cost>member.cost))):
+                best_offspring = member
+        
+        combined_charging_population = (charging_population + offspring_population)
+        charging_population,front_number,crowding_distance = EnvironmentalSelection(combined_charging_population, population_size)
+        new_solution = GenerateRoute(best_routing_ant, best_offspring, depots_count,recharger_count,distances)
         new_solution_cost = EvalElecMulti(new_solution,distances,vel,load_cap,demand,load_unit_cost,cons_rate)
         
         if (IsViable(new_solution,distances, vel, demand,ready_time, service_time,due_date, load_cap, load_unit_cost, fuel_cap, cons_rate,refuel_rate,depots_count,recharger_count)):
@@ -96,6 +106,7 @@ def main():
         best_solution_cost = elite_population[0][0]
         max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
         min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
+        
         pheromone_matrix = UpdatePheromones(RHO, pheromone_matrix, elite_population, new_solution, new_solution_cost, max_pheromone, min_pheromone)
     best_solution= elite_population[0][1]
     best_solution_cost = elite_population[0][0]
