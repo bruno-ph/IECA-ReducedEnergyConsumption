@@ -107,14 +107,15 @@ def EvalConstraint(new_solution,distances, vel, demand,ready_time, service_time,
                     demand_penalty += demand[next_node]-vehicle_load
                     raise Exception(f"Negative Vehicle Load - Current Load{vehicle_load} - Demand: {[demand[vehicle_route[i+1]]]}")
                 elif (elapsed_time>due_time[next_node]):
-                    time_penalty+= -elapsed_time - due_time[next_node]
+                    time_penalty+= elapsed_time - due_time[next_node]
                 else:
                     elapsed_time += max(ready_time[next_node] - elapsed_time,0) + service_time[next_node]
                     vehicle_load -= demand[next_node]  
             else:
                 elapsed_time += (fuel_cap-vehicle_battery) * refuel_rate
                 vehicle_battery = fuel_cap
-        if ((battery_penalty+demand_penalty+time_penalty)>0!=IsViable(new_solution,distances, vel, demand,ready_time, service_time,due_time, load_cap, unit_weight, fuel_cap, cons_rate,refuel_rate,depots_count,rechargers_count)):
-            raise Exception
-        return (battery_penalty+demand_penalty+time_penalty)
+    if (((battery_penalty+demand_penalty+time_penalty)==0)!=IsViable(new_solution,distances, vel, demand,ready_time, service_time,due_time, load_cap, unit_weight, fuel_cap, cons_rate,refuel_rate,depots_count,rechargers_count)):
+        raise Exception
+
+    return (battery_penalty+demand_penalty+time_penalty)
 

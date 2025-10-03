@@ -71,8 +71,10 @@ def main():
     for iteration in range(NUMBER_ITERATIONS):
         print(iteration)
         best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count,depots_count,customer_count,recharger_count, pheromone_matrix, population_size, ALPHA, BETA, distances, demand,ready_time, service_time,due_date,load_cap, vel,load_unit_cost,cons_rate,fuel_cap,refuel_rate)
-        mating_pool = TournamentSelection(2,2*population_size,front_number,-crowding_distance)
-        offspring_population = ChargingOptimization(charging_population[mating_pool],routing_ant_charging_scheme)
+        crowding_distance = [-cd for cd in crowding_distance]
+        tourney_results = TournamentSelection(2,2*population_size,front_number,crowding_distance)
+        mating_pool = [charging_population[int(mate)] for mate in tourney_results]
+        offspring_population = ChargingOptimization(mating_pool,routing_ant_charging_scheme,customer_count)
 
         #combine and rate charging and offspring population
         #charging_population = charging_population.astype(bool)
@@ -83,9 +85,12 @@ def main():
         for mi,member in enumerate(offspring_population):
             created_ant = GenerateRoute(best_routing_ant,member.mask,depots_count,recharger_count,distances)
             member.cost = (EvalElecMulti(created_ant,distances,vel,load_cap,demand,load_unit_cost,cons_rate))
-            member.cons = (EvalConstraint(created_ant))
+            member.cons = (EvalConstraint(created_ant, distances, vel, demand, ready_time, service_time, due_date, load_cap, load_unit_cost, fuel_cap, cons_rate, refuel_rate, depots_count, recharger_count))
             if ((best_penalty>member.cons) or((best_penalty==member.cons) and (best_cost>member.cost))):
                 best_offspring = member
+                best_cost = member.cost
+                best_penalty= member.cons
+                bes
         
         combined_charging_population = (charging_population + offspring_population)
         charging_population,front_number,crowding_distance = EnvironmentalSelection(combined_charging_population, population_size)
