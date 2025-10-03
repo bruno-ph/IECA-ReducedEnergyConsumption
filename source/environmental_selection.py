@@ -54,27 +54,24 @@ def EnvironmentalSelection(charging_population,pop_size):
     fronts= NDSortCharging(negative_costs ,cons)
     next=[]
     front_counter=-1
-    front_numbers = np.ones(len(charging_population))*1e15
+    front_numbers = np.ones(len(charging_population))*-1
     while (len(next)<pop_size):
         front_counter+=1
         current_front = fronts[front_counter]
         [next.append(i) for i in current_front]
         for value in current_front:
             front_numbers[value] = front_counter
-    crowd_distances = CrowdingDistance(costs,front_numbers)
+    crowd_distances_values = CrowdingDistance([costs[n] for n in next],[front_numbers[n] for n in next])
+    crowd_distances = {number:crowd_distances_values[i] for i,number in enumerate(next)}
     if (len(next)>pop_size):
-        sizediff = len(next)-pop_size
-        trim_indexes= np.argwhere(front_numbers = front_counter)
-        trim_values = [(costs[t],t) for t in trim_indexes]
+        trim_members= np.argwhere(front_numbers == front_counter)
+        trim_values = [(crowd_distances[t[0]],t[0]) for t in trim_members]
         trim_values.sort()
-        next[len(next)-sizediff:] = [t[1] for t in trim_values[:len(trim_values)-sizediff]]
-    c = []
-    f = []
-    d = []
-    for n in next:
-        c.append(charging_population[n])
-        f.append(front_numbers[n])
-        d.append(crowd_distances[n])
+        next[len(next)-len(trim_values):] = [t[1] for t in trim_values]
+    next = next[:pop_size]
+    c = [charging_population[n] for n in next]
+    f = [front_numbers[n] for n in next]
+    d = [crowd_distances[n] for n in next]
     return [c,f,d]
     
     

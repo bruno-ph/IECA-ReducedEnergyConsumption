@@ -4,7 +4,7 @@ BETA = 2
 NUMBER_ITERATIONS = 5000
 REAL_MAX_PAYLOAD_WEIGHT = 3650
 REAL_VEHICLE_WEIGHT = 6350
-MAX_ELITE = 30
+MAX_ELITE = 50
 import sys
 import numpy as np
 import read_instance as read_instance
@@ -90,15 +90,15 @@ def main():
                 best_offspring = member
                 best_cost = member.cost
                 best_penalty= member.cons
-                bes
         
         combined_charging_population = (charging_population + offspring_population)
         charging_population,front_number,crowding_distance = EnvironmentalSelection(combined_charging_population, population_size)
-        new_solution = GenerateRoute(best_routing_ant, best_offspring, depots_count,recharger_count,distances)
+        new_solution = GenerateRoute(best_routing_ant, best_offspring.mask, depots_count,recharger_count,distances)
         new_solution_cost = EvalElecMulti(new_solution,distances,vel,load_cap,demand,load_unit_cost,cons_rate)
         
-        if (IsViable(new_solution,distances, vel, demand,ready_time, service_time,due_date, load_cap, load_unit_cost, fuel_cap, cons_rate,refuel_rate,depots_count,recharger_count)):
-            
+        if (best_penalty==0):
+            if (not IsViable(new_solution,distances, vel, demand,ready_time, service_time,due_date, load_cap, load_unit_cost, fuel_cap, cons_rate,refuel_rate,depots_count,recharger_count)):
+                raise Exception
             if (len(elite_population)<population_size):
                 elite_population.append((new_solution_cost,new_solution))
                 elite_population.sort()
