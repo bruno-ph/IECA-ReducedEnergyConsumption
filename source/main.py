@@ -4,7 +4,7 @@ BETA = 2
 NUMBER_ITERATIONS = 5000
 REAL_MAX_PAYLOAD_WEIGHT = 3650
 REAL_VEHICLE_WEIGHT = 6350
-MAX_ELITE = 50
+MAX_ELITE = 30
 import sys
 import numpy as np
 import read_instance as read_instance
@@ -76,9 +76,6 @@ def main():
         mating_pool = [charging_population[int(mate)] for mate in tourney_results]
         offspring_population = ChargingOptimization(mating_pool,routing_ant_charging_scheme,customer_count)
 
-        #combine and rate charging and offspring population
-        #charging_population = charging_population.astype(bool)
-        
         best_penalty = 1e15
         best_cost = 1e15
         best_offspring = offspring_population[0]
@@ -90,11 +87,12 @@ def main():
                 best_offspring = member
                 best_cost = member.cost
                 best_penalty= member.cons
+                best_generated_route = created_ant
         
         combined_charging_population = (charging_population + offspring_population)
         charging_population,front_number,crowding_distance = EnvironmentalSelection(combined_charging_population, population_size)
-        new_solution = GenerateRoute(best_routing_ant, best_offspring.mask, depots_count,recharger_count,distances)
-        new_solution_cost = EvalElecMulti(new_solution,distances,vel,load_cap,demand,load_unit_cost,cons_rate)
+        new_solution = best_generated_route
+        new_solution_cost = best_cost
         
         if (best_penalty==0):
             if (not IsViable(new_solution,distances, vel, demand,ready_time, service_time,due_date, load_cap, load_unit_cost, fuel_cap, cons_rate,refuel_rate,depots_count,recharger_count)):

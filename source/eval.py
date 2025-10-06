@@ -8,7 +8,6 @@ vehicle_weight = 1.0
 #speed m/s, a is m/s², h is kW (second by second)
 
 def EvalElecSingle(vehicle_route,distances, speed, initial_load_amm, demand,unit_weight, cons_rate):
-    #speed is m/s, mass is kg, h in joule per second, distance is m
     cost=0.0
     load_amm = sum([demand[x] for x in vehicle_route])
     if (load_amm>initial_load_amm):
@@ -16,10 +15,6 @@ def EvalElecSingle(vehicle_route,distances, speed, initial_load_amm, demand,unit
     for i in range(0,len(vehicle_route)-1):
         dist =distances[vehicle_route[i]][vehicle_route[i+1]]
         energy_consumption = ((vehicle_weight + load_amm * unit_weight)*dist) * cons_rate
-        # alpha = (0.5 * roll_resist * air_density * vehicle_surf_area * pow(speed,3)) /(1000*transmission_effic)
-        # beta = (gravity*drag_resist*speed)/(1000*transmission_effic)
-        # h = alpha+beta*load_mass #watt or joule per second
-        # cost += h*(dist/speed) #total joules
         cost += energy_consumption
         load_amm = max(load_amm - demand[vehicle_route[i+1]],0)
     return cost
@@ -116,6 +111,5 @@ def EvalConstraint(new_solution,distances, vel, demand,ready_time, service_time,
                 vehicle_battery = fuel_cap
     if (((battery_penalty+demand_penalty+time_penalty)==0)!=IsViable(new_solution,distances, vel, demand,ready_time, service_time,due_time, load_cap, unit_weight, fuel_cap, cons_rate,refuel_rate,depots_count,rechargers_count)):
         raise Exception
-
     return (battery_penalty+demand_penalty+time_penalty)
 

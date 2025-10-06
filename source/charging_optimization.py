@@ -3,6 +3,7 @@ from random import sample, choice
 from math import ceil
 from binary_population import BinaryPopulation
 
+#Selects N instances via K Tournament Selection with 2 fitness values
 def TournamentSelection(k,number_tourneys,fitness1,fitness2):
     chosen_solution = np.zeros(number_tourneys)
     size = len(fitness1)
@@ -14,14 +15,13 @@ def TournamentSelection(k,number_tourneys,fitness1,fitness2):
             sel_fitness = np.array([(fitness2[s]) for s in selected])
             tmp2 =np.where(sel_fitness == np.min((sel_fitness)))[0][0]
             winner = selected[tmp2]
-
         else:
             tmp2 =np.where(sel_fitness == np.min((sel_fitness)))[0][0]
             winner = selected[tmp2]
         chosen_solution[ni] = winner
     return chosen_solution
 
-
+#Defines an offspring population based on an oversized charging population and the charging scheme of one best routing ant 
 def ChargingOptimization(charging_population,routing_ant_charging_scheme,cust_size):
     pop_size = len(charging_population)
     offspring_size = int(len(charging_population)/2)

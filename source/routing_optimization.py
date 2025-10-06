@@ -36,52 +36,42 @@ def RouletteWheelSelection(nodes,origin, distances, alpha, beta, pheromone_matri
 def Split(original_route,demand, ready_time,service_time,due_time,distances,cargo_size,cost_limit, speed, load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count):
     np.fill_diagonal(distances,0)
     n = len(original_route)
-    p = np.full(n,original_route[0]) #Predecessor Node
-    #print("P is",p)
-    v= np.full(n,1e15) #Minimum cost in some route
-    v[0] = 0
     first_node = original_route[0]
-    for i in range(1,n):
-        load = 0
-        cost = 0
-        j=i
-        elapsed_time = 0.0
-        battery = fuel_cap #assumes best case with no load, just to filter out worst cases
-        # delivered_units_per_station=[]
-        while (j<n and cost<=cost_limit and load<=cargo_size and battery>=0):
-            load+=demand[original_route[j]]
-            elapsed_time+=service_time[original_route[j]]
-            if (i==j):
-                cost = distances[first_node][original_route[j]]*2
-                elapsed_time += distances[first_node][original_route[j]]/speed
-                battery -=  distances[first_node][original_route[j]] * cons_rate
+    load = 0
+    elapsed_time = 0.0
+    battery = fuel_cap #assumes best case with no load, just to filter out worst cases
+    trip = [first_node]
+    trips=[]
+    inserted_cust = 0
+    for i in range(1,n): #take each note as route start
+        node = original_route[i]
+        load+=demand[node]
+        elapsed_time+=distances[original_route[i-1]][node]/speed
+        battery -=  distances[original_route[i-1]][node] * cons_rate
+        if (battery<0 or (elapsed_time>due_time[node] and node>=depots_count+rechargers_count) or load>cargo_size or (node==first_node)):
+            if (inserted_cust > 0):
+                trip.append(first_node)
+                trips.append(trip)
+            load = demand[node]
+            elapsed_time =distances[first_node][node]/speed
+            battery = fuel_cap - distances[first_node][node] * cons_rate
+            inserted_cust = 0
+            if (node!=first_node):
+                trip = [first_node]
             else:
-                cost = cost - distances[first_node][original_route[j-1]] + distances[original_route[j-1]][original_route[j]] + distances[first_node][original_route[j]]
-                elapsed_time+= distances[original_route[j-1]][original_route[j]]/speed
-                battery -=  distances[original_route[j-1]][original_route[j]] * cons_rate
-            if (j>=depots_count and j<depots_count+rechargers_count):
-                elapsed_time+= (fuel_cap-battery)*refuel_rate
-
-            if (load<=cargo_size and cost<=cost_limit and battery>=0):
-                if (v[i-1]+cost < v[j] and elapsed_time<=due_time[original_route[j]]+service_time[original_route[j]]):
-                    v[j]=v[i-1]+cost
-                    p[j]=i-1
-                j+=1
-
-    trips = []
-    j=n-1
-    i = j
-    while (i>=1):
-        trip=[first_node]
-        i = p[j]
-        for k in range (i+1,j+1):
-            trip.append(original_route[k])
-        trip.append(first_node)
-        #trip = TwoOptSearch(trip,distances,speed, cargo_size, demand,ready_time, service_time,due_time, load_unit_cost,cons_rate, fuel_cap, refuel_rate,depots_count,rechargers_count )
-        trips.append(trip)
-        j=i
+                trip = []
+        trip.append(node)
+        elapsed_time += service_time[node]
+        if (node>=depots_count+rechargers_count):
+            elapsed_time = max(elapsed_time,due_time[node] + service_time[node])
+            inserted_cust+=1
+        elif (depots_count<=node and node<depots_count+rechargers_count):
+            elapsed_time+= (fuel_cap-battery)*refuel_rate
+    if trip:
+        if (inserted_cust>0):
+            trip.append(first_node)
+            trips.append(trip)
     return trips
-    #print ("Trips:" ,trips)
     
 
     
@@ -96,9 +86,13 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_co
         current = randint(0,vertex_count-1)
         route.append(current)
         was_visited[current]=1
+        should_continue = True
         #remaining_positions =np.where(was_visited==0) #[0]here too
-        while (len(np.where(was_visited[depots_count+rechargers_count:]==0)[0])>0 or was_visited[0]==0):
+        while (should_continue):
+            should_continue = (len(np.where(was_visited[depots_count+rechargers_count:]==0)[0])>0 or was_visited[0]==0)
             possible_next = np.where(was_visited==0)[0]
+            if (len(possible_next)==0):
+                break
             probabilities = [pow(pheromone_matrix[current][int(pn)], alpha) / max(pow(distances[current][int(pn)], beta),1) for pn in possible_next]
             next = choices(possible_next,weights=probabilities)[0]
             if (next==current):
@@ -107,16 +101,13 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_co
                 else:
                     next+=1
             current=next
-            #current= RouletteWheelSelection(np.delete(remaining_positions,np.argwhere(remaining_positions==current)),current, distances, alpha, beta, pheromone_matrix)
             route.append(current)
             was_visited[current]=1
             if (current>depots_count+rechargers_count):
-                was_visited[depots_count:depots_count+rechargers_count]=0
+                was_visited[:depots_count+rechargers_count]=0
         if (route[0]>=depots_count):
             index0 = route.index(0)
             route = route[index0:] + route[:index0]
-        
-        
         
         split_route= Split(route,demand,ready_time, service_time,due_time,distances,load_cap,1e15, speed, load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count)
         split_route_cost = EvalElecMulti(split_route,distances, speed, load_cap, demand,load_unit_cost, cons_rate)

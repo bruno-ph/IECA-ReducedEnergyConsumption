@@ -1,6 +1,7 @@
 
 import numpy as np
 from binary_population import BinaryPopulation
+#Performs modified Non-Dominated Sorting where constraints are more relevant than the (singular) element fitness
 def NDSortCharging(fitness_list,constraints):
     dominates=[[] for _ in range (len(fitness_list))]
     dom_count = np.zeros((len(fitness_list)))
@@ -26,7 +27,7 @@ def NDSortCharging(fitness_list,constraints):
                 dom_count[dominated]-=1
         selected_front = np.where(dom_count==0)[0]
     return fronts
-        
+
 def CrowdingDistance(population,front_no):
     front_no = np.array(front_no).astype(int)
     cd = np.zeros((len(front_no)))
@@ -43,10 +44,8 @@ def CrowdingDistance(population,front_no):
             for i in range (1,len(front_cost)-1):
                 cd[front_cost[i][1]] = (population[front_cost[i-1][1]] - population[front_cost[i+1][1]])/(fmax-fmin)
     return cd
-        
-        
-        
 
+#Filter population based on modified NDSorting and crowding distance
 def EnvironmentalSelection(charging_population,pop_size):
     costs = [c.cost for c in charging_population]
     negative_costs = [-c for c in costs]

@@ -12,4 +12,3 @@ def CalculateCost(mask,distances,depots_count,rechargers_count,load_cap,cons_rat
             dist= min(distances[depots_count+bi][depots_count:depots_count+rechargers_count])
             cost +=((1.0 + load_cap * unit_weight)*dist) * cons_rate
     return cost
-#change to consider electricity
