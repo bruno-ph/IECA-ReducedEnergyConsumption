@@ -79,7 +79,6 @@ def Split(original_route,demand, ready_time,service_time,due_time,distances,carg
 def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_count, pheromone_matrix, population_size, alpha, beta, distances, demand,ready_time, service_time,due_time, load_cap, speed,load_unit_cost,cons_rate,fuel_cap,refuel_rate):
     best_ant_route = []
     best_ant_cost= 1e15
-    # best_ant_viable = False
     for k in range(population_size):
         was_visited= np.zeros(vertex_count)
         route = []
@@ -87,7 +86,6 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_co
         route.append(current)
         was_visited[current]=1
         should_continue = True
-        #remaining_positions =np.where(was_visited==0) #[0]here too
         while (should_continue):
             should_continue = (len(np.where(was_visited[depots_count+rechargers_count:]==0)[0])>0 or was_visited[0]==0)
             possible_next = np.where(was_visited==0)[0]
@@ -114,15 +112,6 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_co
         if (split_route_cost<best_ant_cost):
                 best_ant_cost = split_route_cost
                 best_ant_route = split_route
-        # if (best_ant_viable):
-        #     if (split_route_cost<best_ant_cost and IsViable(split_route,distances,speed,all_coors,load_cap,load_unit_cost,fuel_cap,cons_rate,refuel_rate,depots_count,rechargers_count)):
-        #         best_ant_cost = split_route_cost
-        #         best_ant_route = split_route
-        # else:
-        #     if (split_route_cost<best_ant_cost):
-        #         best_ant_cost = split_route_cost
-        #         best_ant_route = split_route
-        #         best_ant_viable = IsViable(split_route,distances,speed,all_coors,load_cap,load_unit_cost,fuel_cap,cons_rate,refuel_rate,depots_count,rechargers_count)
     best_ant_charging_scheme  = GetAntChargingScheme(best_ant_route,customers_count,depots_count,rechargers_count)
     return (best_ant_route,best_ant_cost,best_ant_charging_scheme)
 

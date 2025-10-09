@@ -83,7 +83,7 @@ def InitializeElitePopulation(depots_count,rechargers_count,customers_count,dist
         routes.append(route)
         total_cost+=cost
 
-    #Validate,may delete later
+    #Validation
     customers_list = [x for x in range (depots_count+rechargers_count,depots_count+rechargers_count+customers_count)]
     mixed_route = [item for route in routes for item in route]
     check =  [x for x in customers_list if x not in mixed_route]

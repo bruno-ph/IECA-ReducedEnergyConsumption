@@ -1,6 +1,7 @@
 import numpy as np
 from eval import *
 
+#Combines Routing Ant and Charging Scheme into a set of vehicle routes
 def GenerateRoute(combined_route,charging_scheme,depots_count,rechargers_count,distances):
     cust_offset =  depots_count + rechargers_count
     new_combined_route = []

@@ -1,6 +1,4 @@
 
-from vertex import Vertex
-
 fuel_cap_index = 30
 load_cap_index = 25
 cons_rate_index = 25

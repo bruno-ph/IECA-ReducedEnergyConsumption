@@ -1,11 +1,4 @@
-air_density = 1.2041 #kg/m³
-roll_resist = 0.01
-drag_resist = 0.48
-gravity = 9.81 #m/s²
-vehicle_surf_area = 11.112 #m²
-transmission_effic = 0.89
 vehicle_weight = 1.0
-#speed m/s, a is m/s², h is kW (second by second)
 
 def EvalElecSingle(vehicle_route,distances, speed, initial_load_amm, demand,unit_weight, cons_rate):
     cost=0.0
@@ -61,14 +54,12 @@ def RouteValid(vehicle_route, distances, speed, demand,ready_time, service_time,
         elapsed_time += dist/speed
         vehicle_battery -= ((vehicle_weight + vehicle_load * unit_weight)*dist) * cons_rate
         if (vehicle_battery<0):
-            #print("BATTERY DEAD")
             return False
         if (vehicle_route[i+1]> depots_count+rechargers_count):
             next_node = vehicle_route[i+1]
             if (vehicle_load < demand[next_node]):
                 raise Exception(f"Negative Vehicle Load - Current Load{vehicle_load} - Demand: {[demand[vehicle_route[i+1]]]}")
             elif (elapsed_time>due_time[next_node]):
-                #print("OUT OF TIME")
                 return False
             else:
                 elapsed_time += max(ready_time[next_node] - elapsed_time,0) + service_time[next_node]

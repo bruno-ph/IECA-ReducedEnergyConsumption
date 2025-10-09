@@ -8,7 +8,6 @@ MAX_ELITE = 30
 import sys
 import numpy as np
 import read_instance as read_instance
-import vertex
 from calc_distances import CalcDistances
 from nearest_neighbour import NearestNeighbourCost
 from routing_optimization import RoutingOptimization
@@ -50,7 +49,7 @@ def main():
     first_elite_cost = EvalElecMulti(first_elite_solution,distances,vel,load_cap,demand,load_unit_cost,cons_rate) 
     elite_population =[(first_elite_cost,first_elite_solution)]
     
-    max_pheromone = 1 #maybe base on the first elite solution
+    max_pheromone = 1
     min_pheromone = 1
 
     hits = 0
@@ -113,18 +112,11 @@ def main():
         pheromone_matrix = UpdatePheromones(RHO, pheromone_matrix, elite_population, new_solution, new_solution_cost, max_pheromone, min_pheromone)
     best_solution= elite_population[0][1]
     best_solution_cost = elite_population[0][0]
-    # tentative_improved_solution, improved_solution_cost = LocalSearch(best_solution,best_solution_cost,depots_count,recharger_count, demand,ready_time, service_time,due_date,vel,load_cap,distances,1.0,load_unit_cost,cons_rate,fuel_cap,refuel_rate,1000)
-    # if (improved_solution_cost<best_solution_cost): #and it is valid!
-    #     best_solution=tentative_improved_solution
-    #     best_solution_cost=improved_solution_cost
     for route in best_solution:
         for node in route:
             print(id[node]+"->",end="")
         print("END")
     print("Electric Unit Cost:"+str(best_solution_cost))
     
-
-
-
 if __name__ == "__main__":
     main()
