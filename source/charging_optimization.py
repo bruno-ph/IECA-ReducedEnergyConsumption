@@ -1,6 +1,5 @@
 import numpy as np
-from random import sample, choice
-from math import ceil
+from random import sample
 from binary_population import BinaryPopulation
 
 #Selects N instances via K Tournament Selection with 2 fitness values

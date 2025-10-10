@@ -1,8 +1,7 @@
 import numpy as np
-from random import randint, uniform, choices
+from random import randint, choices
 from math import pow
-from two_opt_search import TwoOptSearch
-from eval import EvalElecMulti, IsViable
+from eval import EvalElecMulti
 
 def GetAntChargingScheme(best_ant_route,customers_count,depots_count,recharges_count):
     charge_mask = np.zeros(customers_count)
@@ -17,21 +16,6 @@ def GetAntChargingScheme(best_ant_route,customers_count,depots_count,recharges_c
     return charge_mask
 
 
-
-def RouletteWheelSelection(nodes,origin, distances, alpha, beta, pheromone_matrix):
-    f = lambda x: max((min(pow(pheromone_matrix[origin][x], alpha) / max(pow(distances[origin][x], beta),1e-8),1e15)),1e-8)
-    chances = list(map(f,nodes))
-
-    #print(chances)
-    sum_chances = sum(chances)
-    curr_sum=0.0
-    random_value= uniform(0.0,sum_chances)
-    for i, chance in enumerate(chances):
-        cumm_chance = chance+curr_sum
-        if random_value<=cumm_chance:
-            return nodes[i]
-        curr_sum+=chance
-    raise Exception
 
 def Split(original_route,demand, ready_time,service_time,due_time,distances,cargo_size,cost_limit, speed, load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count):
     np.fill_diagonal(distances,0)
