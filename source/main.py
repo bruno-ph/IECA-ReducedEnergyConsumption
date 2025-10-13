@@ -31,6 +31,7 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
     time_initialize_charging = 0
     time_initialize_elite = 0
     time_routing = 0
+    time_split = 0
     time_charging_opt = 0
     time_interaction = 0
     time_pheromone_update = 0
@@ -69,8 +70,9 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
     for iteration in range(number_iterations):
         # print(iteration)
         time_tmp = perf_counter()
-        best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count,depots_count,customer_count,recharger_count, pheromone_matrix, population_size, alpha, beta, distances, demand,ready_time, service_time,due_date,load_cap, vel,load_unit_cost,cons_rate,fuel_cap,refuel_rate)
-        time_routing += perf_counter()-time_tmp
+        best_routing_ant,routing_ant_quality, routing_ant_charging_scheme,timer_gen, timer_split = RoutingOptimization(vertex_count,depots_count,customer_count,recharger_count, pheromone_matrix, population_size, alpha, beta, distances, demand,ready_time, service_time,due_date,load_cap, vel,load_unit_cost,cons_rate,fuel_cap,refuel_rate)
+        time_routing += timer_gen
+        time_split += timer_split
 
         time_tmp = perf_counter()
         crowding_distance = [-cd for cd in crowding_distance]
@@ -136,12 +138,13 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
     
     print(f"Time- Initialize Charging Population: {time_initialize_charging} ({(time_initialize_charging/total_time)*100}%)")
     print(f"Time- Initialize First Elite Solution:  {time_initialize_elite} ({(time_initialize_elite/total_time)*100}%)")
-    print(f"Time- Routing Optimization: {time_routing} ({(time_routing/total_time)*100}%)")
+    print(f"Time- Routing Optimization (except Split): {time_routing} ({(time_routing/total_time)*100}%)")
+    print(f"Time- Route Splitting: {time_split} ({(time_split/total_time)*100}%)")
     print(f"Time- Charging Optimization: {time_charging_opt} ({(time_charging_opt/total_time)*100}%)")
     print(f"Time- Enhanced Population Interaction: {time_interaction} ({(time_interaction/total_time)*100}%)")
     print(f"Time- Charging Environmental Selection: {time_charging_selection} ({(time_charging_selection/total_time)*100}%)")
     print(f"Time- Pheromones Update: {time_pheromone_update} ({(time_pheromone_update/total_time)*100}%)")
-    other_time = total_time - (time_initialize_charging + time_initialize_elite + time_routing + time_charging_opt + time_charging_selection + time_interaction + time_pheromone_update)
+    other_time = total_time - (time_initialize_charging + time_initialize_elite + time_routing +time_split + time_charging_opt + time_charging_selection + time_interaction + time_pheromone_update)
     print(f"Time- Other: {other_time} ({(other_time/total_time)*100}%)")
     print(f"Encountered Viable Solutions: {hits}")
     print(f"Electric Cost Timeline: ", end ="")

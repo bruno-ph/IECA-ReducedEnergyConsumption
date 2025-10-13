@@ -2,6 +2,7 @@ import numpy as np
 from random import randint, choices
 from math import pow
 from eval import EvalElecMulti
+from time import perf_counter
 
 def GetAntChargingScheme(best_ant_route,customers_count,depots_count,recharges_count):
     charge_mask = np.zeros(customers_count)
@@ -61,6 +62,8 @@ def Split(original_route,demand, ready_time,service_time,due_time,distances,carg
     
 
 def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_count, pheromone_matrix, population_size, alpha, beta, distances, demand,ready_time, service_time,due_time, load_cap, speed,load_unit_cost,cons_rate,fuel_cap,refuel_rate):
+    split_time = 0
+    start_time = perf_counter()
     best_ant_route = []
     best_ant_cost= 1e15
     for k in range(population_size):
@@ -90,14 +93,16 @@ def RoutingOptimization(vertex_count, depots_count,customers_count,rechargers_co
         if (route[0]>=depots_count):
             index0 = route.index(0)
             route = route[index0:] + route[:index0]
-        
+        split_start_time=perf_counter()
         split_route= Split(route,demand,ready_time, service_time,due_time,distances,load_cap,1e15, speed, load_unit_cost,cons_rate,fuel_cap, refuel_rate,depots_count,rechargers_count)
+        split_time+= perf_counter()-split_start_time
         split_route_cost = EvalElecMulti(split_route,distances, speed, load_cap, demand,load_unit_cost, cons_rate)
         if (split_route_cost<best_ant_cost):
                 best_ant_cost = split_route_cost
                 best_ant_route = split_route
     best_ant_charging_scheme  = GetAntChargingScheme(best_ant_route,customers_count,depots_count,rechargers_count)
-    return (best_ant_route,best_ant_cost,best_ant_charging_scheme)
+    route_generation_time = (perf_counter()- start_time) - split_time
+    return (best_ant_route,best_ant_cost,best_ant_charging_scheme,route_generation_time,split_time)
 
 
             
