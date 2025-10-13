@@ -1,11 +1,13 @@
-RHO = 0.98
-ALPHA = 1
-BETA = 2
-NUMBER_ITERATIONS = 5000
+# RHO = 0.98
+# ALPHA = 1
+# BETA = 2
+# NUMBER_ITERATIONS = 5000
+# MAX_ELITE = 50
 REAL_MAX_PAYLOAD_WEIGHT = 3650
 REAL_VEHICLE_WEIGHT = 6350
-MAX_ELITE = 30
+
 import sys
+import argparse
 import numpy as np
 import read_instance as read_instance
 from calc_distances import CalcDistances
@@ -20,12 +22,11 @@ from initialize_elite import InitializeElitePopulation
 from binary_population import BinaryPopulation, CalculateCost
 from environmental_selection import EnvironmentalSelection
 from time import perf_counter
-def main():
+def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000, pop_n = 50):
     start_time = perf_counter()
-    instanceFile = (sys.argv[1])
     hits = 0
     #best_solution
-    elec_timeline = np.zeros((NUMBER_ITERATIONS))
+    elec_timeline = np.zeros((number_iterations))
     #dist_timeline = np.zeros((NUMBER_ITERATIONS+1))
     time_initialize_charging = 0
     time_initialize_elite = 0
@@ -35,7 +36,7 @@ def main():
     time_pheromone_update = 0
     time_charging_selection = 0
 
-    id, types,pos,demand,ready_time,due_date,service_time,recharger_count,depots_count,customer_count,fuel_cap, load_cap, cons_rate, refuel_rate, vel = read_instance.ReadInstance(instanceFile)
+    id, types,pos,demand,ready_time,due_date,service_time,recharger_count,depots_count,customer_count,fuel_cap, load_cap, cons_rate, refuel_rate, vel = read_instance.ReadInstance(instance_file)
     real_to_virtual_cargo_ratio = REAL_MAX_PAYLOAD_WEIGHT/load_cap
     load_unit_cost = real_to_virtual_cargo_ratio/REAL_VEHICLE_WEIGHT
     vertex_count= recharger_count+depots_count+customer_count
@@ -44,13 +45,13 @@ def main():
     initial_cost = NearestNeighbourCost(distances,vertex_count)
     #print(initial_cost)
 
-    population_size = min(customer_count,MAX_ELITE)
+    population_size = min(customer_count,pop_n)
     time_tmp = perf_counter()
     charging_population_masks = InitializeChargingPopulation(population_size, distances, depots_count,recharger_count,customer_count)
     charging_population = [BinaryPopulation(mask,CalculateCost(mask, distances, depots_count, recharger_count,load_cap,cons_rate,load_unit_cost), 1e15)  for mask in charging_population_masks]
     charging_population,front_number,crowding_distance = EnvironmentalSelection(charging_population, population_size)
     time_initialize_charging = perf_counter()-time_tmp
-    initial_max_pheromone = 1 / ((1 - RHO) * initial_cost)
+    initial_max_pheromone = 1 / ((1 - rho) * initial_cost)
     pheromone_matrix = np.full((vertex_count,vertex_count),initial_max_pheromone)
     np.fill_diagonal(pheromone_matrix,0)
 
@@ -65,14 +66,10 @@ def main():
     max_pheromone = 1
     min_pheromone = 1
 
-
-    #elec_timeline[0] = (elite_population[0][0])
-    #dist_timeline[0] = EvalDisMulti(elite_population[0][1])
-
-    for iteration in range(NUMBER_ITERATIONS):
+    for iteration in range(number_iterations):
         # print(iteration)
         time_tmp = perf_counter()
-        best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count,depots_count,customer_count,recharger_count, pheromone_matrix, population_size, ALPHA, BETA, distances, demand,ready_time, service_time,due_date,load_cap, vel,load_unit_cost,cons_rate,fuel_cap,refuel_rate)
+        best_routing_ant,routing_ant_quality, routing_ant_charging_scheme = RoutingOptimization(vertex_count,depots_count,customer_count,recharger_count, pheromone_matrix, population_size, alpha, beta, distances, demand,ready_time, service_time,due_date,load_cap, vel,load_unit_cost,cons_rate,fuel_cap,refuel_rate)
         time_routing += perf_counter()-time_tmp
 
         time_tmp = perf_counter()
@@ -121,9 +118,9 @@ def main():
         best_solution_cost = elite_population[0][0]
         
         time_tmp = perf_counter()
-        max_pheromone = 1 / ((1 - RHO) * best_solution_cost)
+        max_pheromone = 1 / ((1 - rho) * best_solution_cost)
         min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
-        pheromone_matrix = UpdatePheromones(RHO, pheromone_matrix, elite_population, new_solution, new_solution_cost, max_pheromone, min_pheromone)
+        pheromone_matrix = UpdatePheromones(rho, pheromone_matrix, elite_population, new_solution, new_solution_cost, max_pheromone, min_pheromone)
         time_pheromone_update+= perf_counter() - time_tmp
         elec_timeline[iteration] = best_solution_cost
     
@@ -146,6 +143,7 @@ def main():
     print(f"Time- Pheromones Update: {time_pheromone_update} ({(time_pheromone_update/total_time)*100}%)")
     other_time = total_time - (time_initialize_charging + time_initialize_elite + time_routing + time_charging_opt + time_charging_selection + time_interaction + time_pheromone_update)
     print(f"Time- Other: {other_time} ({(other_time/total_time)*100}%)")
+    print(f"Encountered Viable Solutions: {hits}")
     print(f"Electric Cost Timeline: ", end ="")
     for i in range(len(elec_timeline)-1):
         print(f"{elec_timeline[i]} - ", end="")
@@ -153,4 +151,12 @@ def main():
 
     
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description ='Find electrically efficient routing solution for the instance file using EVRP.')
+    parser.add_argument("-file",type=str,required=True, help="Location of instance file")
+    parser.add_argument("-rho",type=float,required=False,default = 0.98, help="Pheromone permanence rate")
+    parser.add_argument("-alpha",type=int,required=False, default = 1, help="Weight of pheromones on routing choices")
+    parser.add_argument("-beta",type=int,required=False, default = 2, help="Weight of node distances on routing choices")
+    parser.add_argument("-it",type=int,required=False, default = 5000, help="Number of iterations to be run")
+    parser.add_argument("-pop", type=int, required=False, default=50, help="Maximum size of each ant population (population size will never be larger than the number of customer nodes or this value)")
+    args = parser.parse_args()
+    main(args.file,args.rho,args.alpha,args.beta,args.it,args.pop)
