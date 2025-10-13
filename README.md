@@ -13,8 +13,9 @@ The program utilizes the following parameters
 |-beta|weight of node distancs on routing decisions (2 by default)|
 |-it|number of iterations to be run (5000 by default)|
 |-pop|maximum size of the utilized ant populations (note that, regardless of this value, the number of ants will never exceed the number of customers in an instance)|
+|-out|location and name of output JSON file (output.json by default)|
 
-The program may be run with
+The program may be minimally run with
 
 ```
 python <path-to-project>/source/main.py -file <path-to-instance>/<instance_name>.txt

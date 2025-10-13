@@ -22,9 +22,11 @@ from initialize_elite import InitializeElitePopulation
 from binary_population import BinaryPopulation, CalculateCost
 from environmental_selection import EnvironmentalSelection
 from time import perf_counter
+import json
 def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000, pop_n = 50):
     start_time = perf_counter()
     hits = 0
+    improvements = 0
     #best_solution
     elec_timeline = np.zeros((number_iterations))
     #dist_timeline = np.zeros((NUMBER_ITERATIONS+1))
@@ -36,7 +38,7 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
     time_interaction = 0
     time_pheromone_update = 0
     time_charging_selection = 0
-
+    best_solution_cost=1e18
     id, types,pos,demand,ready_time,due_date,service_time,recharger_count,depots_count,customer_count,fuel_cap, load_cap, cons_rate, refuel_rate, vel = read_instance.ReadInstance(instance_file)
     real_to_virtual_cargo_ratio = REAL_MAX_PAYLOAD_WEIGHT/load_cap
     load_unit_cost = real_to_virtual_cargo_ratio/REAL_VEHICLE_WEIGHT
@@ -69,7 +71,6 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
 
     for iteration in range(number_iterations):
         # print(iteration)
-        time_tmp = perf_counter()
         best_routing_ant,routing_ant_quality, routing_ant_charging_scheme,timer_gen, timer_split = RoutingOptimization(vertex_count,depots_count,customer_count,recharger_count, pheromone_matrix, population_size, alpha, beta, distances, demand,ready_time, service_time,due_date,load_cap, vel,load_unit_cost,cons_rate,fuel_cap,refuel_rate)
         time_routing += timer_gen
         time_split += timer_split
@@ -116,7 +117,10 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
         combined_charging_population = (charging_population + offspring_population)
         charging_population,front_number,crowding_distance = EnvironmentalSelection(combined_charging_population, population_size)
         time_charging_selection+= perf_counter() - time_tmp
-
+        
+        best_cost_tmp = elite_population[0][0]
+        if (best_cost_tmp<best_solution_cost):
+            improvements+=1
         best_solution_cost = elite_population[0][0]
         
         time_tmp = perf_counter()
@@ -134,7 +138,8 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
             print(id[node]+"->",end="")
         print("END")
     print("Electric Unit Cost: "+str(best_solution_cost))
-    print("Distance Cost: "+str(EvalDisMulti(best_solution,distances)))
+    best_solution_dist_cost=EvalDisMulti(best_solution,distances)
+    print("Distance Cost: "+str(best_solution_dist_cost))
     
     print(f"Time- Initialize Charging Population: {time_initialize_charging} ({(time_initialize_charging/total_time)*100}%)")
     print(f"Time- Initialize First Elite Solution:  {time_initialize_elite} ({(time_initialize_elite/total_time)*100}%)")
@@ -151,6 +156,7 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
     for i in range(len(elec_timeline)-1):
         print(f"{elec_timeline[i]} - ", end="")
     print(f"{elec_timeline[-1]}")
+    return (best_solution,best_solution_cost, best_solution_dist_cost, time_initialize_charging, time_initialize_elite, time_routing, time_split, time_charging_opt,time_interaction, time_charging_selection,time_pheromone_update,other_time, total_time,hits, improvements,elec_timeline,id)
 
     
 if __name__ == "__main__":
@@ -161,5 +167,38 @@ if __name__ == "__main__":
     parser.add_argument("-beta",type=int,required=False, default = 2, help="Weight of node distances on routing choices")
     parser.add_argument("-it",type=int,required=False, default = 5000, help="Number of iterations to be run")
     parser.add_argument("-pop", type=int, required=False, default=50, help="Maximum size of each ant population (population size will never be larger than the number of customer nodes or this value)")
+    parser.add_argument("-out",type=str,required=False, default = "output.json", help="Output file location and name")
     args = parser.parse_args()
-    main(args.file,args.rho,args.alpha,args.beta,args.it,args.pop)
+    route, el_cost, ds_cost, time_init_charging, time_init_elite, time_route,time_split,time_ch_opt,time_int, time_sel, time_pher, other,total, hits,improvements,tl,id = main(args.file,args.rho,args.alpha,args.beta,args.it,args.pop)
+    
+    time_spent ={"charging_population_initialization": time_init_charging,
+                 "first_elite_route_generation": time_init_elite,
+                 "routing_optimization":time_route,
+                 "route_splitting":time_split,
+                 "charging_optimization": time_ch_opt,
+                 "enhanced_interaction": time_int,
+                 "environmental_selection": time_sel,
+                 "pheromone_update":time_pher,
+                 "other":other}
+    route_int =  [ [str(i) for i in r] for r in route]
+    routes_id = [ [id[i] for i in r] for r in route]
+    tl =[str(c) for c in tl]
+    data = {"alpha":args.alpha,
+            "Beta":args.beta,
+            "rho":args.rho,
+            "iterations":args.it,
+            "population_limit":args.pop,
+            "route_ids": routes_id,
+            "route_ints":route_int,
+            "electric_cost":el_cost,
+            "distance": ds_cost,
+            "time_spent":time_spent,
+            "total_time":total,
+            "hits": hits,
+            "hits_with_improvement": improvements,
+            "electric_cost_timeline": tl
+            }
+    
+    json_str = json.dumps(data, indent=4)
+    with open(args.out, "w") as f:
+        f.write(json_str)
