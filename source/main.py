@@ -60,8 +60,8 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
 
     time_tmp = perf_counter()
     first_elite_solution=(InitializeElitePopulation(depots_count,recharger_count,customer_count,distances,fuel_cap,load_cap,refuel_rate,vel,load_unit_cost,cons_rate,demand,ready_time,due_date,service_time))
-    if (not IsViable(first_elite_solution,distances, vel, demand,ready_time, service_time,due_date, load_cap, load_unit_cost, fuel_cap, cons_rate,refuel_rate,depots_count,recharger_count)):
-        raise Exception
+    # if (not IsViable(first_elite_solution,distances, vel, demand,ready_time, service_time,due_date, load_cap, load_unit_cost, fuel_cap, cons_rate,refuel_rate,depots_count,recharger_count)):
+    #     raise Exception
     first_elite_cost = EvalElecMulti(first_elite_solution,distances,vel,load_cap,demand,load_unit_cost,cons_rate) 
     elite_population =[(first_elite_cost,first_elite_solution)]
     time_initialize_elite = perf_counter()-time_tmp
@@ -70,7 +70,7 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
     min_pheromone = 1
 
     for iteration in range(number_iterations):
-        # print(iteration)
+        print(iteration)
         best_routing_ant,routing_ant_quality, routing_ant_charging_scheme,timer_gen, timer_split = RoutingOptimization(vertex_count,depots_count,customer_count,recharger_count, pheromone_matrix, population_size, alpha, beta, distances, demand,ready_time, service_time,due_date,load_cap, vel,load_unit_cost,cons_rate,fuel_cap,refuel_rate)
         time_routing += timer_gen
         time_split += timer_split
@@ -100,8 +100,8 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
         
         
         if (best_penalty==0):
-            if (not IsViable(new_solution,distances, vel, demand,ready_time, service_time,due_date, load_cap, load_unit_cost, fuel_cap, cons_rate,refuel_rate,depots_count,recharger_count)):
-                raise Exception
+            # if (not IsViable(new_solution,distances, vel, demand,ready_time, service_time,due_date, load_cap, load_unit_cost, fuel_cap, cons_rate,refuel_rate,depots_count,recharger_count)):
+            #     raise Exception
             if (len(elite_population)<population_size):
                 elite_population.append((new_solution_cost,new_solution))
                 elite_population.sort()
@@ -156,10 +156,10 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
     for i in range(len(elec_timeline)-1):
         print(f"{elec_timeline[i]} - ", end="")
     print(f"{elec_timeline[-1]}")
-    return (best_solution,best_solution_cost, best_solution_dist_cost, time_initialize_charging, time_initialize_elite, time_routing, time_split, time_charging_opt,time_interaction, time_charging_selection,time_pheromone_update,other_time, total_time,hits, improvements,elec_timeline,id)
+    return (best_solution,best_solution_cost, best_solution_dist_cost, time_initialize_charging, time_initialize_elite, time_routing, time_split, time_charging_opt,time_interaction, time_charging_selection,time_pheromone_update,other_time, total_time,hits, improvements,elec_timeline,id,customer_count,recharger_count)
 
     
-if __name__ == "__main__":
+def start():
     parser = argparse.ArgumentParser(description ='Find electrically efficient routing solution for the instance file using EVRP.')
     parser.add_argument("-file",type=str,required=True, help="Location of instance file")
     parser.add_argument("-rho",type=float,required=False,default = 0.98, help="Pheromone permanence rate")
@@ -167,10 +167,9 @@ if __name__ == "__main__":
     parser.add_argument("-beta",type=int,required=False, default = 2, help="Weight of node distances on routing choices")
     parser.add_argument("-it",type=int,required=False, default = 5000, help="Number of iterations to be run")
     parser.add_argument("-pop", type=int, required=False, default=50, help="Maximum size of each ant population (population size will never be larger than the number of customer nodes or this value)")
-    parser.add_argument("-out",type=str,required=False, default = "output.json", help="Output file location and name")
+    parser.add_argument("-outfile",type=str,required=False, default = "output.json", help="Output file location and name")
     args = parser.parse_args()
-    route, el_cost, ds_cost, time_init_charging, time_init_elite, time_route,time_split,time_ch_opt,time_int, time_sel, time_pher, other,total, hits,improvements,tl,id = main(args.file,args.rho,args.alpha,args.beta,args.it,args.pop)
-    
+    route, el_cost, ds_cost, time_init_charging, time_init_elite, time_route,time_split,time_ch_opt,time_int, time_sel, time_pher, other,total, hits,improvements,tl,id,customer_count,recharger_count = main(args.file,args.rho,args.alpha,args.beta,args.it,args.pop)
     time_spent ={"charging_population_initialization": time_init_charging,
                  "first_elite_route_generation": time_init_elite,
                  "routing_optimization":time_route,
@@ -192,6 +191,8 @@ if __name__ == "__main__":
             "route_ints":route_int,
             "electric_cost":el_cost,
             "distance": ds_cost,
+            "customers":customer_count,
+            "rechargers":recharger_count,
             "time_spent":time_spent,
             "total_time":total,
             "hits": hits,
@@ -200,5 +201,8 @@ if __name__ == "__main__":
             }
     
     json_str = json.dumps(data, indent=4)
-    with open(args.out, "w") as f:
+    with open(args.outfile, "w") as f:
         f.write(json_str)
+
+if __name__ == "__main__":
+    start()

@@ -13,3 +13,4 @@ if files:
 
         file.write(f"{filename}\n")
     file.close()
+print(files)
