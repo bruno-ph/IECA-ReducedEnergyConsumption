@@ -9,6 +9,7 @@ REAL_VEHICLE_WEIGHT = 6350
 import sys
 import argparse
 import numpy as np
+from os.path import basename
 import read_instance as read_instance
 from calc_distances import CalcDistances
 from nearest_neighbour import NearestNeighbourCost
@@ -24,6 +25,7 @@ from environmental_selection import EnvironmentalSelection
 from time import perf_counter
 import json
 def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000, pop_n = 50):
+    #print(alpha,beta,pop_n)
     start_time = perf_counter()
     hits = 0
     improvements = 0
@@ -57,7 +59,6 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
     initial_max_pheromone = 1 / ((1 - rho) * initial_cost)
     pheromone_matrix = np.full((vertex_count,vertex_count),initial_max_pheromone)
     np.fill_diagonal(pheromone_matrix,0)
-
     time_tmp = perf_counter()
     first_elite_solution=(InitializeElitePopulation(depots_count,recharger_count,customer_count,distances,fuel_cap,load_cap,refuel_rate,vel,load_unit_cost,cons_rate,demand,ready_time,due_date,service_time))
     # if (not IsViable(first_elite_solution,distances, vel, demand,ready_time, service_time,due_date, load_cap, load_unit_cost, fuel_cap, cons_rate,refuel_rate,depots_count,recharger_count)):
@@ -65,12 +66,12 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
     first_elite_cost = EvalElecMulti(first_elite_solution,distances,vel,load_cap,demand,load_unit_cost,cons_rate) 
     elite_population =[(first_elite_cost,first_elite_solution)]
     time_initialize_elite = perf_counter()-time_tmp
-    
     max_pheromone = 1
     min_pheromone = 1
 
     for iteration in range(number_iterations):
-        print(iteration)
+        if (iteration%100==0):
+             print(iteration)
         best_routing_ant,routing_ant_quality, routing_ant_charging_scheme,timer_gen, timer_split = RoutingOptimization(vertex_count,depots_count,customer_count,recharger_count, pheromone_matrix, population_size, alpha, beta, distances, demand,ready_time, service_time,due_date,load_cap, vel,load_unit_cost,cons_rate,fuel_cap,refuel_rate)
         time_routing += timer_gen
         time_split += timer_split
@@ -166,7 +167,7 @@ def start():
     parser.add_argument("-alpha",type=int,required=False, default = 1, help="Weight of pheromones on routing choices")
     parser.add_argument("-beta",type=int,required=False, default = 2, help="Weight of node distances on routing choices")
     parser.add_argument("-it",type=int,required=False, default = 5000, help="Number of iterations to be run")
-    parser.add_argument("-pop", type=int, required=False, default=50, help="Maximum size of each ant population (population size will never be larger than the number of customer nodes or this value)")
+    parser.add_argument("-pop", type=int, required=False, default=100, help="Maximum size of each ant population (population size will never be larger than the number of customer nodes or this value)")
     parser.add_argument("-outfile",type=str,required=False, default = "output.json", help="Output file location and name")
     args = parser.parse_args()
     route, el_cost, ds_cost, time_init_charging, time_init_elite, time_route,time_split,time_ch_opt,time_int, time_sel, time_pher, other,total, hits,improvements,tl,id,customer_count,recharger_count = main(args.file,args.rho,args.alpha,args.beta,args.it,args.pop)
@@ -182,8 +183,9 @@ def start():
     route_int =  [ [str(i) for i in r] for r in route]
     routes_id = [ [id[i] for i in r] for r in route]
     tl =[str(c) for c in tl]
-    data = {"alpha":args.alpha,
-            "Beta":args.beta,
+    data = {"instance":basename(args.file),
+            "alpha":args.alpha,
+            "beta":args.beta,
             "rho":args.rho,
             "iterations":args.it,
             "population_limit":args.pop,

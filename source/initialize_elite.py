@@ -7,9 +7,12 @@ def InitializeElitePopulation(depots_count,rechargers_count,customers_count,dist
     nearest_stations = [depots_count+np.argmin([distances[x][rs] for rs in range(depots_count,rechargers_count+1)]) for x in range (0,len(distances))]
 
     total_cost =0.0
+    load_division = 1
     while (ranked_customers):
         route = [0]
         load = min(load_cap,sum(demand[x[1]] for x in ranked_customers))
+        load = max(load/load_division,min(demand[x[1]] for x in ranked_customers))
+
         battery = fuel_cap
         elapsed_time = 0.0
         cost = 0.0
@@ -55,9 +58,13 @@ def InitializeElitePopulation(depots_count,rechargers_count,customers_count,dist
                     elapsed_time += dist/vel + (fuel_cap -(battery-battery_to_station))*refuel_rate
                     battery = fuel_cap
                     cost +=battery_to_station
-                    required_battery = (((1.0 + load * unit_weight)*distances[current_pos][objective]) * cons_rate)  
+                    required_battery = (((1.0 + load * unit_weight)*distances[current_pos][objective]) * cons_rate)
             else:
                 objective_rank_index+=1
+        #check if could get to any customers
+        if (all(n<depots_count+rechargers_count for n in route)):
+            load_division+=1
+            continue
         #THEN find way back to depot
         last_node = route[-1]
         depot = 0
