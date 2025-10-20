@@ -25,7 +25,7 @@ customer_multiplier = (0.5,0.7,1)
 
 pyfile = "python3"
 folder_name = "IECA-ReducedEnergyConsumption"
-main_file = os.path.join(folder_name,"source","main.py")
+main_file = os.path.join("source","main.py")
 repet = 1
 for i in range(repet):
         for c in customer_multiplier:
