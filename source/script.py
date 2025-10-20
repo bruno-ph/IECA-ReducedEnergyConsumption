@@ -48,8 +48,8 @@ for i in range(repet):
 print ("Total processes:{}".format(len(processes)),processes)
 
 def exec(proc):
-      print(proc)
-      return call(proc)
+      print(proc[2:])
+      return call(proc,args=proc[2:])
 
 #code to call the processes
 pool = Pool(processes=workers)
