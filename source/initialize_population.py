@@ -1,7 +1,7 @@
 import numpy as np
 from random import choices
 def InitializeChargingPopulation(pop_size,distances, depots_count,rechargers_count,customers_count):
-    mask = np.zeros((pop_size,customers_count))
+    mask = np.zeros((pop_size,customers_count+depots_count))
     associated_stations = np.zeros(customers_count)
     dmax= 1e-18
     dmin=1e18
@@ -19,7 +19,10 @@ def InitializeChargingPopulation(pop_size,distances, depots_count,rechargers_cou
         dist = distances[depots_count+rechargers_count+i][int(associated_stations[i])]
         probability = (dmax-dist)/((dmax+1)-dmin) 
         for j in range(0,pop_size):
-            mask[j][i]= choices([1,0],weights=[probability,1-probability],k=1)[0]
+            mask[j][i+depots_count]= choices([1,0],weights=[probability,1-probability],k=1)[0]
+    for i in range(depots_count):
+        for j in range(0,pop_size):
+            mask[j][i] = 0
     return mask
     
     

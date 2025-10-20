@@ -80,7 +80,7 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
         crowding_distance = [-cd for cd in crowding_distance]
         tourney_results = TournamentSelection(2,2*population_size,front_number,crowding_distance)
         mating_pool = [charging_population[int(mate)] for mate in tourney_results]
-        offspring_population = ChargingOptimization(mating_pool,routing_ant_charging_scheme,customer_count)
+        offspring_population = ChargingOptimization(mating_pool,routing_ant_charging_scheme,customer_count,depots_count)
         time_charging_opt += perf_counter()-time_tmp
 
         time_tmp = perf_counter()
@@ -122,6 +122,7 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
         best_cost_tmp = elite_population[0][0]
         if (best_cost_tmp<best_solution_cost):
             improvements+=1
+
         best_solution_cost = elite_population[0][0]
         
         time_tmp = perf_counter()
@@ -130,7 +131,6 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
         pheromone_matrix = UpdatePheromones(rho, pheromone_matrix, elite_population, new_solution, new_solution_cost, max_pheromone, min_pheromone)
         time_pheromone_update+= perf_counter() - time_tmp
         elec_timeline[iteration] = best_solution_cost
-    
     best_solution= elite_population[0][1]
     best_solution_cost = elite_population[0][0]
     total_time = perf_counter() - start_time

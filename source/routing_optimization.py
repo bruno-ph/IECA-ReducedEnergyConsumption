@@ -5,15 +5,17 @@ from eval import EvalElecMulti
 from time import perf_counter
 
 def GetAntChargingScheme(best_ant_route,customers_count,depots_count,recharges_count):
-    charge_mask = np.zeros(customers_count)
-    min_customer = depots_count+recharges_count
+    charge_mask = np.zeros(customers_count+depots_count)
     for route in best_ant_route:
         last_customer = -1
         for coordinate in route:
-            if (coordinate>=min_customer):
+            if (coordinate>=depots_count+recharges_count or coordinate<depots_count):
                 last_customer=coordinate
             elif (coordinate>=depots_count and last_customer!=-1):
-                charge_mask[last_customer-min_customer]=1
+                if (last_customer<depots_count):
+                    charge_mask[last_customer]=1
+                else:
+                    charge_mask[last_customer-recharges_count]=1
     return charge_mask
 
 

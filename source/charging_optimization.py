@@ -21,17 +21,18 @@ def TournamentSelection(k,number_tourneys,fitness1,fitness2):
     return chosen_solution
 
 #Defines an offspring population based on an oversized charging population and the charging scheme of one best routing ant 
-def ChargingOptimization(charging_population,routing_ant_charging_scheme,cust_size):
+def ChargingOptimization(charging_population,routing_ant_charging_scheme,cust_size,depots_count):
     pop_size = len(charging_population)
+    binary_sequence_size = cust_size+depots_count
     offspring_size = int(len(charging_population)/2)
     routing_ant_bool = np.tile(routing_ant_charging_scheme.astype(bool),(offspring_size,1)) 
     parent_population1 = [c.mask for c in charging_population[:offspring_size]]
     parent_population2 = [c.mask for c in charging_population[offspring_size:]]
-    offspring = np.zeros((pop_size,cust_size))
-    randomization_mask = np.random.choice([True,False],size= (offspring_size,cust_size))
+    offspring = np.zeros((pop_size,binary_sequence_size))
+    randomization_mask = np.random.choice([True,False],size= (offspring_size,binary_sequence_size))
     offspring = (np.array(parent_population1,dtype=bool) & routing_ant_bool)
     offspring[randomization_mask]= np.array(parent_population2,dtype=bool)[randomization_mask]
-    bitflip_mask = np.random.choice([True,False],size= (offspring_size,cust_size), p =(1/cust_size,1-(1/cust_size)))
+    bitflip_mask = np.random.choice([True,False],size= (offspring_size,binary_sequence_size), p =(1/binary_sequence_size,1-(1/binary_sequence_size)))
     offspring= offspring ^ bitflip_mask
     offspring_pop = []
     for child_mask in offspring:
