@@ -22,9 +22,10 @@ alpha_beta = [('1','1'),('2','1')] #(1,2) skipped as it is the default
 
 customer_multiplier = (0.5,0.7,1)
 
-main_file = os.path.join("source","main.py")
+
 pyfile = "python3"
 folder_name = "IECA-ReducedEnergyConsumption"
+main_file = os.path.join(folder_name,"source","main.py")
 repet = 1
 for i in range(repet):
         for c in customer_multiplier:
