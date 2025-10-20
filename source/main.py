@@ -70,8 +70,8 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
     min_pheromone = 1
 
     for iteration in range(number_iterations):
-        if (iteration%100==0):
-             print(iteration)
+        # if (iteration%100==0):
+        #      print(iteration)
         best_routing_ant,routing_ant_quality, routing_ant_charging_scheme,timer_gen, timer_split = RoutingOptimization(vertex_count,depots_count,customer_count,recharger_count, pheromone_matrix, population_size, alpha, beta, distances, demand,ready_time, service_time,due_date,load_cap, vel,load_unit_cost,cons_rate,fuel_cap,refuel_rate)
         time_routing += timer_gen
         time_split += timer_split
