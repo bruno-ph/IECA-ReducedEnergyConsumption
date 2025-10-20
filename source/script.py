@@ -34,7 +34,7 @@ for i in range(repet):
                 custam = int(ins[1]*c)
                 input_file = os.path.join("evrptw_instances",f"{ins[0]}")
                 output_file = os.path.join("results",f"{'a1b2_c'+str(custam)+'_'+ins[0]}.json")
-                processes.append([f"{pyfile}", f"{main_file}",f" -file {input_file} -pop {custam} -outfile {output_file}"])
+                processes.append([f"{pyfile}", f"{main_file} -file {input_file} -pop {custam} -outfile {output_file}"])
 
 for i in range(repet):
         for ab in alpha_beta:
@@ -43,7 +43,7 @@ for i in range(repet):
                 custam = int(ins[1])
                 input_file = os.path.join("evrptw_instances",f"{ins[0]}.txt")
                 output_file = os.path.join("results",f"a{ab[0]}b{ab[1]}_c{str(custam)+'_'+ins[0]}.json")
-                processes.append([f"{pyfile}",f"{main_file}",f" -file {input_file} -alpha {ab[0]} -beta {ab[1]} -outfile {output_file}"])
+                processes.append([f"{pyfile}",f"{main_file} -file {input_file} -alpha {ab[0]} -beta {ab[1]} -outfile {output_file}"])
 
 print ("Total processes:{}".format(len(processes)),processes)
 
