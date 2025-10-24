@@ -42,7 +42,7 @@ for i in range(repet):
             for ins in inst:
                 #[instance, opt] = ins
                 custam = int(ins[1])
-                input_file = os.path.join("evrptw_instances",f"{ins[0]}.txt")
+                input_file = os.path.join("evrptw_instances",f"{ins[0]}")
                 output_file = os.path.join("results",f"a{ab[0]}b{ab[1]}_c{str(custam)+'_'+ins[0]}.json")
                 processes.append([f"{pyfile}",f"{main_file}","-file",f" {input_file}","-alpha",f"{ab[0]}","-beta",f"{ab[1]}","-outfile",f"{output_file}"])
 
