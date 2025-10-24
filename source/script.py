@@ -49,8 +49,8 @@ for i in range(repet):
 print ("Total processes:{}".format(len(processes)),processes)
 
 #code to call the processes
-# pool = Pool(processes=workers)
-# result = pool.map(run,processes)
-# print(result)
+pool = Pool(processes=workers)
+result = pool.map(run,processes)
+print(result)
 
 #nohup no console
