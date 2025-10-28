@@ -8,7 +8,7 @@ from multiprocessing import Pool, cpu_count
 import os
 #detect how many processes will run at the same time
 try:
-        workers = 6#cpu_count()-1
+        workers = 5#cpu_count()-1
 except NotImplementedError:
         workers = 1
 
