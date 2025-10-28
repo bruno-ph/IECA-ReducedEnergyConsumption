@@ -27,14 +27,14 @@ customer_multiplier = (0.5,0.7,1)
 pyfile = "python3"
 folder_name = "IECA-ReducedEnergyConsumption"
 main_file = os.path.join("source","main.py")
-repet = 1
+repet = 5
 for i in range(repet):
         for c in customer_multiplier:
             for ins in inst:
                 #[instance, opt] = ins
                 custam = int(ins[1]*c)
                 input_file = os.path.join("evrptw_instances",f"{ins[0]}")
-                output_file = os.path.join("results",f"{'a1b2_c'+str(custam)+'_'+ins[0]}.json")
+                output_file = os.path.join("results",f"{'a1b2_c'+str(custam)+'_'+ins[0]}_repet{str(i)}.json")
                 processes.append([f"{pyfile}", f"{main_file}","-file",f"{input_file}","-pop",f"{custam}","-outfile",f"{output_file}"])
 
 for i in range(repet):
@@ -43,7 +43,7 @@ for i in range(repet):
                 #[instance, opt] = ins
                 custam = int(ins[1])
                 input_file = os.path.join("evrptw_instances",f"{ins[0]}")
-                output_file = os.path.join("results",f"a{ab[0]}b{ab[1]}_c{str(custam)+'_'+ins[0]}.json")
+                output_file = os.path.join("results",f"a{ab[0]}b{ab[1]}_c{str(custam)+'_'+ins[0]}_repet{str(i)}.json")
                 processes.append([f"{pyfile}",f"{main_file}","-file",f"{input_file}","-alpha",f"{ab[0]}","-beta",f"{ab[1]}","-outfile",f"{output_file}"])
 
 print ("Total processes:{}".format(len(processes)),processes)
