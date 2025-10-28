@@ -8,7 +8,7 @@ from multiprocessing import Pool, cpu_count
 import os
 #detect how many processes will run at the same time
 try:
-        workers = 8#cpu_count()-1
+        workers = 6#cpu_count()-1
 except NotImplementedError:
         workers = 1
 
@@ -28,14 +28,14 @@ pyfile = "python3"
 folder_name = "IECA-ReducedEnergyConsumption"
 main_file = os.path.join("source","main.py")
 repet = 1
-# for i in range(repet):
-#         for c in customer_multiplier:
-#             for ins in inst:
-#                 #[instance, opt] = ins
-#                 custam = int(ins[1]*c)
-#                 input_file = os.path.join("evrptw_instances",f"{ins[0]}")
-#                 output_file = os.path.join("results",f"{'a1b2_c'+str(custam)+'_'+ins[0]}.json")
-#                 processes.append([f"{pyfile}", f"{main_file}","-file",f"{input_file}","-pop",f"{custam}","-outfile",f"{output_file}"])
+for i in range(repet):
+        for c in customer_multiplier:
+            for ins in inst:
+                #[instance, opt] = ins
+                custam = int(ins[1]*c)
+                input_file = os.path.join("evrptw_instances",f"{ins[0]}")
+                output_file = os.path.join("results",f"{'a1b2_c'+str(custam)+'_'+ins[0]}.json")
+                processes.append([f"{pyfile}", f"{main_file}","-file",f"{input_file}","-pop",f"{custam}","-outfile",f"{output_file}"])
 
 for i in range(repet):
         for ab in alpha_beta:
