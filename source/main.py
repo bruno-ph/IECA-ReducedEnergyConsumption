@@ -127,7 +127,7 @@ def main(instance_file, rho = 0.98 ,alpha = 1,beta = 2,number_iterations = 5000,
         
         time_tmp = perf_counter()
         max_pheromone = 1 / ((1 - rho) * best_solution_cost)
-        min_pheromone = (max_pheromone*(1 - pow(0.005,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.005,(1/vertex_count)))
+        min_pheromone = (max_pheromone*(1 - pow(0.05,(1/vertex_count)))) / ((vertex_count/2 - 1)*pow(0.05,(1/vertex_count)))
         pheromone_matrix = UpdatePheromones(rho, pheromone_matrix, elite_population, new_solution, new_solution_cost, max_pheromone, min_pheromone)
         time_pheromone_update+= perf_counter() - time_tmp
         elec_timeline[iteration] = best_solution_cost
