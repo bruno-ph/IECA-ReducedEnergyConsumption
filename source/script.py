@@ -8,7 +8,7 @@ from multiprocessing import Pool, cpu_count
 import os
 #detect how many processes will run at the same time
 try:
-        workers = 5#cpu_count()-1
+        workers = 6#cpu_count()-1
 except NotImplementedError:
         workers = 1
 
@@ -27,7 +27,7 @@ customer_multiplier = (0.5,0.7,1)
 pyfile = "python3"
 folder_name = "IECA-ReducedEnergyConsumption"
 main_file = os.path.join("source","main.py")
-repet = 5
+repet = 3
 for i in range(repet):
         for c in customer_multiplier:
             for ins in inst:
